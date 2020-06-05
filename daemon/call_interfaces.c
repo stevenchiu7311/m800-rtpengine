@@ -702,6 +702,9 @@ static void call_ng_flags_flags(struct sdp_ng_flags *out, str *s, void *dummy) {
 		case CSH_LOOKUP("pad-crypto"):
 			out->pad_crypto = 1;
 			break;
+		case CSH_LOOKUP("force-reset"):
+			out->force_reset = 1;
+			break;
 		default:
 			// handle values aliases from other dictionaries
 			if (call_ng_flags_prefix(out, s, "SDES-no-", call_ng_flags_str_ht, &out->sdes_no))
@@ -972,7 +975,8 @@ static const char *call_offer_answer_ng(bencode_item_t *input,
 	// SDP fragments for trickle ICE must always operate on an existing call
 	if (opmode == OP_OFFER && !flags.fragment) {
 		if (call) {
-			if (IS_FOREIGN_CALL(call)) {
+			if (IS_FOREIGN_CALL(call) || flags.force_reset) {
+				ilog(LOG_INFO, "Recreate call instance due to Flag force_reset: %x, foreign_call: %x", flags.force_reset, IS_FOREIGN_CALL(call));
 				/* destroy call and create new one */
 				rwlock_unlock_w(&call->master_lock);
 				call_destroy(call);
