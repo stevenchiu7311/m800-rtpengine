@@ -979,6 +979,9 @@ static const char *call_offer_answer_ng(bencode_item_t *input,
 				ilog(LOG_INFO, "Recreate call instance due to Flag force_reset: %x, foreign_call: %x", flags.force_reset, IS_FOREIGN_CALL(call));
 				/* destroy call and create new one */
 				rwlock_unlock_w(&call->master_lock);
+				if (flags.force_reset) {
+					recording_stop(call);
+				}
 				call_destroy(call);
 				obj_put(call);
 				call = call_get_or_create(&flags.call_id, CT_OWN_CALL);
