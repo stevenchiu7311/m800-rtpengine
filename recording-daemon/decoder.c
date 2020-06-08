@@ -50,7 +50,7 @@ decode_t *decoder_new(const char *payload_str, int ptime, output_t *outp) {
 
 	const codec_def_t *def = codec_find(&name, MT_AUDIO);
 	if (!def) {
-		ilog(LOG_WARN, "No decoder for payload %s", payload_str);
+		// ilog(LOG_WARN, "No decoder for payload %s", payload_str);
 		return NULL;
 	}
 	if (def->avcodec_id == -1) // not a real audio codec
