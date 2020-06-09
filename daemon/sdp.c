@@ -1821,7 +1821,6 @@ static void insert_candidate(struct sdp_chopper *chop, struct stream_fd *sfd,
 	/* raddr and rport are required for non-host candidates: rfc5245 section-15.1 */
 	if(type != ICT_HOST)
 		insert_raddr_rport(chop, sfd);
-	chopper_append_c(chop, " generation 0 network-id 800 network-cost 999");
 	chopper_append_c(chop, "\r\n");
 }
 
