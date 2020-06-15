@@ -128,10 +128,10 @@ a=rtpmap:113 telephone-event/16000
 a=rtpmap:126 telephone-event/8000
 a=fmtp:111 minptime=10;useinbandfec=1
 a=sendrecv
-a=candidate:ICEBASE 1 UDP 16777215 203.0.113.1 PORT typ relay raddr 203.0.113.1 rport PORT
-a=candidate:ICEBASE 1 UDP 16776959 2001:db8:4321::1 PORT typ relay raddr 2001:db8:4321::1 rport PORT
-a=candidate:ICEBASE 2 UDP 16777214 203.0.113.1 PORT typ relay raddr 203.0.113.1 rport PORT
-a=candidate:ICEBASE 2 UDP 16776958 2001:db8:4321::1 PORT typ relay raddr 2001:db8:4321::1 rport PORT
+a=candidate:ICEBASE 1 UDP 16777215 203.0.113.1 PORT typ relay raddr 203.0.113.1 rport PORT generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 16776959 2001:db8:4321::1 PORT typ relay raddr 2001:db8:4321::1 rport PORT generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 16777214 203.0.113.1 PORT typ relay raddr 203.0.113.1 rport PORT generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 16776958 2001:db8:4321::1 PORT typ relay raddr 2001:db8:4321::1 rport PORT generation 0 network-id 800 network-cost 999
 SDP
 
 is $ret1[0], $ret1[6], 'ice base 1';
@@ -237,8 +237,8 @@ a=fmtp:111 minptime=10;useinbandfec=1
 a=sendrecv
 a=rtcp:PORT
 a=rtcp-mux
-a=candidate:ICEBASE 1 UDP 16777215 203.0.113.1 PORT typ relay raddr 203.0.113.1 rport PORT
-a=candidate:ICEBASE 1 UDP 16776959 2001:db8:4321::1 PORT typ relay raddr 2001:db8:4321::1 rport PORT
+a=candidate:ICEBASE 1 UDP 16777215 203.0.113.1 PORT typ relay raddr 203.0.113.1 rport PORT generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 16776959 2001:db8:4321::1 PORT typ relay raddr 2001:db8:4321::1 rport PORT generation 0 network-id 800 network-cost 999
 SDP
 
 is $ret1[2], $ret1[3], 'rtp rport 1';
@@ -1275,10 +1275,10 @@ a=sendrecv
 a=rtcp:PORT
 a=ice-ufrag:ICEUFRAG
 a=ice-pwd:ICEPWD
-a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 answer('plain SDP, ICE removed', { ICE => 'remove' }, <<SDP);
@@ -1375,10 +1375,10 @@ a=candidate:ujksdfghfdfgdfsb 2 UDP 2130706174 2001:db8:abcd::3 2003 typ host
 a=rtpmap:0 PCMU/8000
 a=sendrecv
 a=rtcp:PORT
-a=candidate:ICEBASE 1 UDP 2097152255 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 4294967295 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2097152254 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 4294967294 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2097152255 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 4294967295 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2097152254 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 4294967294 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 answer('plain SDP, ICE rejected, no ICE option given', { }, <<SDP);
@@ -1413,10 +1413,10 @@ c=IN IP4 198.51.100.1
 a=sendrecv
 a=ice-ufrag:asbsdfds
 a=ice-pwd:sfhwsrgyergws45ujhsrthsrhH
-a=candidate:sfthqw45hdfgdfsb 1 UDP 2130706431 198.51.100.3 2002 typ host
-a=candidate:ujksdfghfdfgdfsb 1 UDP 2130706175 2001:db8:abcd::3 2002 typ host
-a=candidate:sfthqw45hdfgdfsb 2 UDP 2130706430 198.51.100.3 2003 typ host
-a=candidate:ujksdfghfdfgdfsb 2 UDP 2130706174 2001:db8:abcd::3 2003 typ host
+a=candidate:sfthqw45hdfgdfsb 1 UDP 2130706431 198.51.100.3 2002 typ host generation 0 network-id 800 network-cost 999
+a=candidate:ujksdfghfdfgdfsb 1 UDP 2130706175 2001:db8:abcd::3 2002 typ host generation 0 network-id 800 network-cost 999
+a=candidate:sfthqw45hdfgdfsb 2 UDP 2130706430 198.51.100.3 2003 typ host generation 0 network-id 800 network-cost 999
+a=candidate:ujksdfghfdfgdfsb 2 UDP 2130706174 2001:db8:abcd::3 2003 typ host generation 0 network-id 800 network-cost 999
 ----------------------------
 v=0
 o=- 1545997027 1 IN IP4 198.51.100.1
@@ -1429,10 +1429,10 @@ a=sendrecv
 a=rtcp:PORT
 a=ice-ufrag:ICEUFRAG
 a=ice-pwd:ICEPWD
-a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 answer('plain SDP, ICE rejected, no ICE option given', { }, <<SDP);
@@ -1455,10 +1455,10 @@ a=sendrecv
 a=rtcp:PORT
 a=ice-ufrag:ICEUFRAG
 a=ice-pwd:ICEPWD
-a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 new_call;
@@ -1489,10 +1489,10 @@ a=sendrecv
 a=rtcp:PORT
 a=ice-ufrag:ICEUFRAG
 a=ice-pwd:ICEPWD
-a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 answer('ICE SDP, no ICE option given', { }, <<SDP);
@@ -1525,10 +1525,10 @@ a=candidate:ujksdfghfbhdcfsb 2 UDP 2130706174 2001:db8:abcd::3 2003 typ host
 a=rtpmap:0 PCMU/8000
 a=sendrecv
 a=rtcp:PORT
-a=candidate:ICEBASE 1 UDP 2097152255 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 4294967295 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2097152254 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 4294967294 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2097152255 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 4294967295 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2097152254 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 4294967294 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 new_call;
@@ -1559,10 +1559,10 @@ a=sendrecv
 a=rtcp:PORT
 a=ice-ufrag:ICEUFRAG
 a=ice-pwd:ICEPWD
-a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 answer('ICE SDP with ICE force', { ICE => 'force' }, <<SDP);
@@ -1591,10 +1591,10 @@ a=sendrecv
 a=rtcp:PORT
 a=ice-ufrag:ICEUFRAG
 a=ice-pwd:ICEPWD
-a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 # github issue #686
