@@ -1,4 +1,11 @@
 ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.2) unstable; urgency=medium
+
+  [ Steven Chiu ]
+  * [7fbe78e] [ice] Force release call-recording instance when force-reset is raised
+  * [555fb43] [ice] Add low-priority network-cost into rtpengine ice candidate
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 15 Jun 2020 18:25:49 +0200
+
 ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2) unstable; urgency=medium
 
   [ Richard Fuchs ]

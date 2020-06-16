@@ -397,6 +397,7 @@ struct call {
 	int			block_media:1;
 	int			recording_on:1;
 	int			rec_forwarding:1;
+	int			dtls_ignore_endpoint_changes:1;
 };
 
 

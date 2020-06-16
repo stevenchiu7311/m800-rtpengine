@@ -705,6 +705,9 @@ static void call_ng_flags_flags(struct sdp_ng_flags *out, str *s, void *dummy) {
 		case CSH_LOOKUP("force-reset"):
 			out->force_reset = 1;
 			break;
+		case CSH_LOOKUP("dtls-ignore-endpoint-changes"):
+			out->dtls_ignore_endpoint_changes = 1;
+			break;
 		default:
 			// handle values aliases from other dictionaries
 			if (call_ng_flags_prefix(out, s, "SDES-no-", call_ng_flags_str_ht, &out->sdes_no))
@@ -997,6 +1000,7 @@ static const char *call_offer_answer_ng(bencode_item_t *input,
 	if (!call)
 		goto out;
 
+	call->dtls_ignore_endpoint_changes = flags.dtls_ignore_endpoint_changes;
 	if (!call->created_from && addr) {
 		call->created_from = call_strdup(call, addr);
 		call->created_from_addr = sin->address;
