@@ -1701,8 +1701,15 @@ static int process_media_attributes(struct sdp_chopper *chop, struct sdp_media *
 				}
 				if (MEDIA_ISSET(media, PASSTHRU))
 					break;
-				if (!flags->ice_remove && !flags->ice_force)
+				if (!flags->ice_remove && !flags->ice_force) {
 					break;
+				} else {
+					// Reserve relay candidate in ICE mode
+					if ((attr->u.candidate.type_str.len == 5) &&
+							(strncasecmp(attr->u.candidate.type_str.s, "relay", 5) == 0)) {
+						break;
+					}
+				}
 				goto strip;
 
 			case ATTR_RTCP:
