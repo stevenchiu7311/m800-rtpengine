@@ -2046,6 +2046,7 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 			if (replace_network_address(chop, &session->origin.address, ps, flags, 0))
 				goto error;
 		}
+
 		if (session->connection.parsed && sess_conn &&
 		    !flags->ice_force_relay) {
 			if (replace_network_address(chop, &session->connection.address, ps, flags, 1))
@@ -2089,7 +2090,7 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 				if (replace_codec_list(chop, sdp_media, call_media))
 					goto error;
 
-				if (sdp_media->connection.parsed) {
+				if (sdp_media->connection.parsed && !flags->ice_disable) {
 				        if (replace_network_address(chop, &sdp_media->connection.address, ps,
 								flags, 1))
 					        goto error;
@@ -2167,7 +2168,7 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 
 			if (MEDIA_ISSET(call_media, TRICKLE_ICE) && call_media->ice_agent)
 				chopper_append_c(chop, "a=ice-options:trickle\r\n");
-			if (MEDIA_ISSET(call_media, ICE))
+			if (MEDIA_ISSET(call_media, ICE) && !flags->ice_disable)
 				insert_candidates(chop, ps, ps_rtcp, flags, sdp_media);
 
 next:

@@ -790,6 +790,9 @@ static void call_ng_process_flags(struct sdp_ng_flags *out, bencode_item_t *inpu
 			case CSH_LOOKUP("force relay"):
 				out->ice_force_relay = 1;
 				break;
+			case CSH_LOOKUP("disable"):
+				out->ice_disable = 1;
+				break;
 			default:
 				ilog(LOG_WARN, "Unknown 'ICE' flag encountered: '"STR_FORMAT"'",
 						STR_FMT(&s));
