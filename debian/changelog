@@ -1,3 +1,10 @@
+ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.4) unstable; urgency=medium
+  
+  [ Steven Chiu ]
+  * [9e3a9447] [log] Refine recording log with counter
+
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 16 Apr 2020 18:25:49 +0200
 ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.3) unstable; urgency=medium
 
   [ Steven Chiu ]
