@@ -16,7 +16,6 @@
 #include "db.h"
 #include "streambuf.h"
 #include "resample.h"
-#include <time.h>
 
 
 static ssize_t ssrc_tls_write(void *, const void *, size_t);
@@ -337,11 +336,10 @@ void packet_process(stream_t *stream, unsigned char *buf, unsigned len) {
 	unsigned long ssrc_num = ntohl(packet->rtp->ssrc);
 	log_info_ssrc = ssrc_num;
 	dbg("packet parsed successfully, seq %u", packet->p.seq);
-	struct timespec ts;
-	timespec_get(&ts, TIME_UTC);
-	if (ts.tv_nsec % 1000 == 110) {
-		ilog(LOG_INFO, "packet parsed successfully, seq %u %ld", packet->p.seq,  ts.tv_nsec);
+	if (stream->log_seq == 0 || packet->p.seq % 3000 == 0) {
+		ilog(LOG_INFO, "packet parsed successfully, seq %d", packet->p.seq);
 	}
+	stream->log_seq++;
 
 	// insert into ssrc queue
 	ssrc_t *ssrc = ssrc_get(stream, ssrc_num);

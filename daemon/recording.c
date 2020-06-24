@@ -245,6 +245,7 @@ static void recording_update_flags(struct call *call) {
 void recording_start(struct call *call, const char *prefix, str *metadata) {
 	update_metadata(call, metadata);
 
+	ilog(LOG_NOTICE, "[recording] recording_start call: %p, call->recording: %p", call, call->recording);
 	if (call->recording) {
 		// already active
 		recording_update_flags(call);
@@ -291,11 +292,11 @@ void recording_start(struct call *call, const char *prefix, str *metadata) {
 	recording_update_flags(call);
 }
 void recording_stop(struct call *call) {
-	ilog(LOG_NOTICE, "[recording_stop] call->recording: %p", call->recording);
+	ilog(LOG_NOTICE, "[recording] recording_stop call: %p, call->recording: %p", call, call->recording);
 	if (!call->recording)
 		return;
 
-	ilog(LOG_NOTICE, "[recording_stop] recording_on: %x rec_forwarding: %x", call->recording_on, call->rec_forwarding);
+	ilog(LOG_NOTICE, "[recording] recording_stop call: %p, recording_on: %x, rec_forwarding: %x", call, call->recording_on, call->rec_forwarding);
 	// check if all recording options are disabled
 	if (call->recording_on || call->rec_forwarding) {
 		recording_update_flags(call);
