@@ -1623,6 +1623,9 @@ static int process_session_attributes(struct sdp_chopper *chop, struct sdp_attri
 				goto strip;
 
 			case ATTR_CANDIDATE:
+				if (flags->ice_transparent_remove) {
+					goto strip;
+				}
 				if (flags->ice_force_relay) {
 					if ((attr->u.candidate.type_str.len == 5) &&
 					    (strncasecmp(attr->u.candidate.type_str.s, "relay", 5) == 0))
@@ -1692,6 +1695,9 @@ static int process_media_attributes(struct sdp_chopper *chop, struct sdp_media *
 				goto strip;
 
 			case ATTR_CANDIDATE:
+				if (flags->ice_transparent_remove) {
+					goto strip;
+				}
 				if (flags->ice_force_relay) {
 					if ((attr->u.candidate.type_str.len == 5) &&
 					    (strncasecmp(attr->u.candidate.type_str.s, "relay", 5) == 0))
@@ -2161,7 +2167,7 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 
 			if (MEDIA_ISSET(call_media, TRICKLE_ICE) && call_media->ice_agent)
 				chopper_append_c(chop, "a=ice-options:trickle\r\n");
-			if (MEDIA_ISSET(call_media, ICE) && !flags->ice_disable)
+			if (MEDIA_ISSET(call_media, ICE) && !flags->ice_disable && !flags->ice_transparent_remove)
 				insert_candidates(chop, ps, ps_rtcp, flags, sdp_media);
 
 next:

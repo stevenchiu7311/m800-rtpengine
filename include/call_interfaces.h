@@ -56,6 +56,8 @@ struct sdp_ng_flags {
 	    ice_remove:1,
 	    ice_force:1,
 	    ice_force_relay:1,
+	    ice_transparent_remove:1,
+	    ice_transparent_force:1,
 	    ice_disable:1,
 	    rtcp_mux_offer:1,
 	    rtcp_mux_require:1,
