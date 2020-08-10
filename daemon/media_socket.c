@@ -1716,11 +1716,13 @@ static int do_rtcp(struct packet_handler_ctx *phc) {
 	int ret = -1;
 
 	GQueue rtcp_list = G_QUEUE_INIT;
-	if (rtcp_parse(&rtcp_list, &phc->mp))
-		goto out;
-	if (phc->rtcp_filter)
-		if (phc->rtcp_filter(&phc->mp, &rtcp_list))
+	if (!MEDIA_ISSET(phc->in_srtp->media, PASSTHRU)) {
+		if (rtcp_parse(&rtcp_list, &phc->mp))
 			goto out;
+		if (phc->rtcp_filter)
+			if (phc->rtcp_filter(&phc->mp, &rtcp_list))
+				goto out;
+	}
 
 	// queue for output
 	codec_add_raw_packet(&phc->mp);
