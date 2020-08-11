@@ -1,3 +1,9 @@
+ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.5) unstable; urgency=medium
+
+  [ Steven Chiu ]
+  * [9e3a136f] Remove rtcp handling in PASSTHRU because it's not working in SRTP
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 16 Apr 2020 18:25:49 +0200
 ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.4) unstable; urgency=medium
   
   [ Steven Chiu ]
