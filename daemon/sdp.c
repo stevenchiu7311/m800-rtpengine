@@ -1623,7 +1623,7 @@ static int process_session_attributes(struct sdp_chopper *chop, struct sdp_attri
 				goto strip;
 
 			case ATTR_CANDIDATE:
-				if (flags->ice_transparent_remove) {
+				if (flags->ice_transparent_remove || flags->ice_transparent_force) {
 					goto strip;
 				}
 				if (flags->ice_force_relay) {
@@ -1695,7 +1695,7 @@ static int process_media_attributes(struct sdp_chopper *chop, struct sdp_media *
 				goto strip;
 
 			case ATTR_CANDIDATE:
-				if (flags->ice_transparent_remove) {
+				if (flags->ice_transparent_remove || flags->ice_transparent_force) {
 					goto strip;
 				}
 				if (flags->ice_force_relay) {
