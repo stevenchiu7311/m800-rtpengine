@@ -253,7 +253,7 @@ static int cert_init(void) {
 	/* digest */
 
 	new_cert = obj_alloc0("dtls_cert", sizeof(*new_cert), cert_free);
-	new_cert->fingerprint.hash_func = &hash_funcs[0];
+	new_cert->fingerprint.hash_func = &hash_funcs[2];
 	dtls_fingerprint_hash(&new_cert->fingerprint, x509);
 
 	new_cert->x509 = x509;
