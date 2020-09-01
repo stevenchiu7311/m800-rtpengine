@@ -1656,6 +1656,12 @@ static int process_session_attributes(struct sdp_chopper *chop, struct sdp_attri
 					goto strip;
 				break;
 
+			case ATTR_SSRC:
+				if (!flags->ice_remove && !flags->ice_force) {
+					break;
+				}
+				goto strip;
+
 			default:
 				break;
 		}
@@ -1743,6 +1749,12 @@ static int process_media_attributes(struct sdp_chopper *chop, struct sdp_media *
 			case ATTR_SETUP:
 				if (MEDIA_ISSET(media, PASSTHRU))
 					break;
+				goto strip;
+
+			case ATTR_SSRC:
+				if (!flags->ice_remove && !flags->ice_force) {
+					break;
+				}
 				goto strip;
 
 			default:
