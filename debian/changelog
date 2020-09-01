@@ -1,3 +1,10 @@
+ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.7) unstable; urgency=medium
+
+  [ Steven Chiu ]
+  * [4477d51a] Remove ssrc for compatibility to poor track handling of safari
+  * [b269f615] Change fingerprint into sha-256 for security requirement
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 16 Apr 2020 18:25:49 +0200
 ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.6) unstable; urgency=medium
 
   [ Steven Chiu ]
