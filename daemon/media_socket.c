@@ -1722,6 +1722,8 @@ static int do_rtcp(struct packet_handler_ctx *phc) {
 		if (phc->rtcp_filter)
 			if (phc->rtcp_filter(&phc->mp, &rtcp_list))
 				goto out;
+	} else {
+		srtp_report(&phc->mp);
 	}
 
 	// queue for output

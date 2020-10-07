@@ -318,6 +318,7 @@ static void homer_sdes_item(struct rtcp_process_ctx *, const struct sdes_chunk *
 static void homer_sdes_list_end(struct rtcp_process_ctx *);
 static void homer_finish(struct rtcp_process_ctx *, struct call *, const endpoint_t *, const endpoint_t *,
 		const struct timeval *);
+static GString* homer_stats(struct media_packet *mp);
 
 // syslog functions
 static void logging_init(struct rtcp_process_ctx *);
@@ -643,6 +644,12 @@ void rtcp_list_free(GQueue *q) {
 }
 
 
+void srtp_report(struct media_packet *mp) {
+	GString* stat_json = homer_stats(mp);
+	if (stat_json) {
+		homer_send_generic(stat_json, &mp->call->callid, &mp->fsin, &mp->sfd->socket.local, &mp->tv, PROTO_LOG);
+	}
+}
 
 int rtcp_parse(GQueue *q, struct media_packet *mp) {
 	struct rtcp_header *hdr;
@@ -1072,11 +1079,38 @@ static void homer_sdes_list_end(struct rtcp_process_ctx *ctx) {
 	str_sanitize(ctx->json);
 	g_string_append_printf(ctx->json, "],");
 }
+
+static GString* homer_stats(struct media_packet *mp) {
+	GString *json = g_string_new("");
+	int received_packets = atomic64_get_na(&mp->stream->stats.packets);
+	int received_bytes = atomic64_get_na(&mp->stream->stats.bytes);
+	int received_errors = atomic64_get_na(&mp->stream->stats.errors);
+	g_string_append_printf(json,
+		"{\"laddr\":%s,"
+		"\"lport\":%d,"
+		"\"raddr\":%s,"
+		"\"rport\":%d,"
+		"\"packets\":%u,"
+		"\"bytes\":%u,"
+		"\"errors\":%u"
+		"}",
+		sockaddr_print_buf(&mp->sfd->socket.local.address),
+		mp->sfd->socket.local.port,
+		sockaddr_print_buf(&mp->stream->endpoint.address),
+		mp->stream->endpoint.port,
+		received_packets,
+		received_bytes,
+		received_errors);
+	return json;
+}
+
 static void homer_finish(struct rtcp_process_ctx *ctx, struct call *c, const endpoint_t *src,
 		const endpoint_t *dst, const struct timeval *tv)
 {
 	str_sanitize(ctx->json);
 	g_string_append(ctx->json, " }");
+
+	srtp_report(ctx->mp);
 	if (ctx->json->len > ctx->json_init_len + 2)
 		homer_send(ctx->json, &c->callid, src, dst, tv);
 	else
