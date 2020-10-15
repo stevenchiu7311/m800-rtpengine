@@ -1085,22 +1085,23 @@ static GString* homer_stats(struct media_packet *mp) {
 	int received_packets = atomic64_get_na(&mp->stream->stats.packets);
 	int received_bytes = atomic64_get_na(&mp->stream->stats.bytes);
 	int received_errors = atomic64_get_na(&mp->stream->stats.errors);
+
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+
+	uint64_t time_in_second = (tv.tv_sec) + (tv.tv_usec) / 1000000 ; // convert tv_sec & tv_usec to millisecond
+
 	g_string_append_printf(json,
-		"{\"laddr\":%s,"
-		"\"lport\":%d,"
-		"\"raddr\":%s,"
-		"\"rport\":%d,"
+		"{"
 		"\"packets\":%u,"
 		"\"bytes\":%u,"
-		"\"errors\":%u"
+		"\"errors\":%u,"
+		"\"time\":%ld"
 		"}",
-		sockaddr_print_buf(&mp->sfd->socket.local.address),
-		mp->sfd->socket.local.port,
-		sockaddr_print_buf(&mp->stream->endpoint.address),
-		mp->stream->endpoint.port,
 		received_packets,
 		received_bytes,
-		received_errors);
+		received_errors,
+		time_in_second);
 	return json;
 }
 
