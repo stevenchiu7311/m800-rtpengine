@@ -29,6 +29,7 @@ int rtcp_savp2avp(str *, struct crypto_context *, struct ssrc_ctx *);
 int rtcp_payload(struct rtcp_packet **out, str *p, const str *s);
 
 int rtcp_parse(GQueue *q, struct media_packet *);
+void srtp_report(struct media_packet *);
 void rtcp_list_free(GQueue *q);
 
 rtcp_filter_func rtcp_avpf2avp_filter;
