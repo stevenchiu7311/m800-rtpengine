@@ -975,7 +975,7 @@ static void __fill_stream(struct packet_stream *ps, const struct endpoint *epp, 
 		dtls_ignore_endpoint_changes = call->dtls_ignore_endpoint_changes;
 	}
 
-	if (dtls_ignore_endpoint_changes) {
+	if (dtls_ignore_endpoint_changes == 1) {
 		ilog(LOG_DEBUG, "[__fill_stream] Ignore dtls/crypto handshake for follow-up endpoint changes...Packet stream instance %p with port %d if filled %x", &ps->endpoint, (ps->endpoint).port, PS_ISSET(ps, FILLED));
 	} else {
 		ilog(LOG_DEBUG, "[__fill_stream] Try reset dtls/crypto for packet stream instance %p with port %d if filled %x", &ps->endpoint, (ps->endpoint).port, PS_ISSET(ps, FILLED));
