@@ -2113,8 +2113,20 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 
 			copy_up_to_end_of(chop, &sdp_media->s);
 
-			if (!sdp_media->port_num || !ps->selected_sfd)
+			if (!sdp_media->port_num || !ps->selected_sfd) {
+				// Append mid to make non-unified plan sdp compatible to webrtc client
+				if (flags->ice_force) {
+					ilog(LOG_ERROR, "MID compatible appender => media_type: %.*s, port: %.*s, port_num: %ld, ps->selected_sfd: %p", sdp_media->media_type.len, sdp_media->media_type.s, sdp_media->port.len, sdp_media->port.s, sdp_media->port_num, ps->selected_sfd);
+					if (str_cmp(&sdp_media->media_type, "video") == 0) {
+						if (call_media->media_id.s) {
+							chopper_append_c(chop, "a=mid:");
+							chopper_append_str(chop, &call_media->media_id);
+							chopper_append_c(chop, "\r\n");
+						}
+					}
+				}
 				goto next;
+			}
 
 			if (call_media->media_id.s) {
 				chopper_append_c(chop, "a=mid:");
