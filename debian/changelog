@@ -1,14 +1,22 @@
+ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.11) unstable; urgency=medium
+
+  [ Steven Chiu ]
+  * Extend parameter for tranmform unified instead of force perform on all case
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 22 Oct 2020 11:41:49 +0200
 ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.10) unstable; urgency=medium
 
   [ Steven Chiu ]
   * Fix non-unified plan sdp but offer not have media_id in for reference
 
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 22 Oct 2020 11:41:49 +0200
 ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.9) unstable; urgency=medium
 
   [ Steven Chiu ]
   * Fix dtls_ignore_endpoint_changes flag value comparison bug
   * Append mid to make non-unified plan sdp compatible to webrtc client
 
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 22 Oct 2020 11:41:49 +0200
 ngcp-rtpengine (8.3.1.2+0~mr8.3.1.2~m800-v0.0.8) unstable; urgency=medium
 
   [ Steven Chiu ]
