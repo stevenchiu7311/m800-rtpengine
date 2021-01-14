@@ -90,7 +90,8 @@ struct sdp_ng_flags {
 	    sdes_authenticated_srtp:1,
 	    pad_crypto:1,
 	    force_reset:1,
-	    dtls_ignore_endpoint_changes:1;
+	    dtls_ignore_endpoint_changes:1,
+	    force_unified:1;
 };
 
 

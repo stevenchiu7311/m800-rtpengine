@@ -2115,9 +2115,10 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 
 			if (!sdp_media->port_num || !ps->selected_sfd) {
 				// Append mid to make non-unified plan sdp compatible to webrtc client
-				if (flags->ice_force) {
-					ilog(LOG_WARN, "MID compatible appender => media_type: %.*s, port: %.*s, port_num: %ld, ps->selected_sfd: %p media_id: %.*s", sdp_media->media_type.len, sdp_media->media_type.s, sdp_media->port.len, sdp_media->port.s, sdp_media->port_num, ps->selected_sfd, call_media->media_id.len, call_media->media_id.s);
+				if (flags->ice_force && flags->force_unified) {
+					ilog(LOG_WARN, "MID compatible appender => check media_type: %.*s, port: %.*s, port_num: %ld, ps->selected_sfd: %p media_id: %.*s", sdp_media->media_type.len, sdp_media->media_type.s, sdp_media->port.len, sdp_media->port.s, sdp_media->port_num, ps->selected_sfd, call_media->media_id.len, call_media->media_id.s);
 					if (str_cmp(&sdp_media->media_type, "video") == 0) {
+						ilog(LOG_WARN, "MID compatible appender => perform appending media_type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
 						chopper_append_c(chop, "a=mid:");
 						if (call_media->media_id.s) {
 							chopper_append_str(chop, &call_media->media_id);
@@ -2135,12 +2136,15 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 				chopper_append_str(chop, &call_media->media_id);
 				chopper_append_c(chop, "\r\n");
 			} else {
-				if (flags->ice_force) {
+				// Only check and transform non-unfied sdp to unfied one
+				if (flags->ice_force && flags->force_unified) {
 					// Fix non-unified plan sdp but offer not have media_id in for reference
 					ilog(LOG_WARN, "MID compatible appender => media_type: %.*s, media_id: %.*s", sdp_media->media_type.len, sdp_media->media_type.s, call_media->media_id.len, call_media->media_id.s);
 					if (str_cmp(&sdp_media->media_type, "audio") == 0) {
+						ilog(LOG_WARN, "MID compatible appender => perform appending media_type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
 						chopper_append_c(chop, "a=mid:0\r\n");
 					} else if (str_cmp(&sdp_media->media_type, "video") == 0) {
+						ilog(LOG_WARN, "MID compatible appender => perform appending media_type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
 						chopper_append_c(chop, "a=mid:1\r\n");
 					} else {
 						ilog(LOG_ERROR, "Won't fix MID for unkown media type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
