@@ -463,7 +463,7 @@ static int try_connect(struct dtls_connection *d) {
 	ret = 0;
 	switch (code) {
 		case SSL_ERROR_NONE:
-			ilog(LOG_DEBUG, "DTLS handshake successful");
+			ilog(LOG_INFO, "DTLS handshake successful");
 			d->connected = 1;
 			ret = 1;
 			break;
@@ -694,7 +694,7 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		return -1;
 
 	if (s) {
-		ilog(LOG_DEBUG, "Processing incoming DTLS packet");
+		ilog(LOG_INFO, "Processing incoming DTLS packet");
 		BIO_write(d->r_bio, s->s, s->len);
 		/* we understand this as preference of DTLS over SDES */
 		MEDIA_CLEAR(ps->media, SDES);
@@ -753,7 +753,7 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		if (!fsin)
 			fsin = &ps->endpoint;
 
-		ilog(LOG_DEBUG, "Sending DTLS packet");
+		ilog(LOG_INFO, "Sending DTLS packet");
 		socket_sendto(&sfd->socket, buf, ret, fsin);
 	}
 
