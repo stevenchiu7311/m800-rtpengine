@@ -157,7 +157,7 @@ static struct ice_candidate_pair *__pair_candidate(struct stream_fd *sfd, struct
 	g_hash_table_insert(ag->pair_hash, pair, pair);
 	g_tree_insert(ag->all_pairs, pair, pair);
 
-	ilog(LOG_DEBUG, "Created candidate pair "PAIR_FORMAT" between %s and %s%s%s, type %s", PAIR_FMT(pair),
+	ilog(LOG_INFO, "Created candidate pair "PAIR_FORMAT" between %s and %s%s%s, type %s", PAIR_FMT(pair),
 			sockaddr_print_buf(&sfd->socket.local.address),
 			FMT_M(endpoint_print_buf(&cand->endpoint)),
 			ice_candidate_type_str(cand->type));
@@ -287,7 +287,7 @@ static void __ice_reset(struct ice_agent *ag) {
 
 /* if the other side did a restart */
 static void __ice_restart(struct ice_agent *ag) {
-	ilog(LOG_DEBUG, "ICE restart, resetting ICE agent");
+	ilog(LOG_INFO, "ICE restart, resetting ICE agent");
 
 	ag->ufrag[0] = STR_NULL;
 	ag->pwd[0] = STR_NULL;
@@ -376,7 +376,7 @@ void ice_update(struct ice_agent *ag, struct stream_params *sp) {
 			/* if this is peer reflexive, we've learned it through STUN.
 			 * otherwise it's simply one we've seen before. */
 			if (dup->type == ICT_PRFLX) {
-				ilog(LOG_DEBUG, "Replacing previously learned prflx ICE candidate with "
+				ilog(LOG_INFO, "Replacing previously learned prflx ICE candidate with "
 						STR_FORMAT_M ":%lu", STR_FMT_M(&cand->foundation),
 						cand->component_id);
 			}
@@ -384,7 +384,7 @@ void ice_update(struct ice_agent *ag, struct stream_params *sp) {
 				/* if the new one has higher priority then the old one, then we
 				 * update it, otherwise we just drop it */
 				if (cand->priority <= dup->priority) {
-					ilog(LOG_DEBUG, "Dropping new ICE candidate " STR_FORMAT_M
+					ilog(LOG_INFO, "Dropping new ICE candidate " STR_FORMAT_M
 							" in favour of "
 							STR_FORMAT_M ":%lu",
 							STR_FMT_M(&cand->foundation),
@@ -392,7 +392,7 @@ void ice_update(struct ice_agent *ag, struct stream_params *sp) {
 					continue;
 				}
 
-				ilog(LOG_DEBUG, "Replacing known ICE candidate " STR_FORMAT_M " with higher "
+				ilog(LOG_INFO, "Replacing known ICE candidate " STR_FORMAT_M " with higher "
 						"priority "
 						STR_FORMAT_M ":%lu",
 						STR_FMT_M(&dup->foundation),
@@ -404,7 +404,7 @@ void ice_update(struct ice_agent *ag, struct stream_params *sp) {
 			recalc += __copy_cand(call, dup, cand);
 		}
 		else {
-			ilog(LOG_DEBUG, "Learning new ICE candidate " STR_FORMAT_M ":%lu",
+			ilog(LOG_INFO, "Learning new ICE candidate " STR_FORMAT_M ":%lu",
 					STR_FMT_M(&cand->foundation), cand->component_id);
 			dup = g_slice_alloc(sizeof(*dup));
 			__copy_cand(call, dup, cand);
@@ -557,7 +557,7 @@ void ice_init(void) {
 
 
 static void __fail_pair(struct ice_candidate_pair *pair) {
-	ilog(LOG_DEBUG, "Setting ICE candidate pair "PAIR_FORMAT" as failed", PAIR_FMT(pair));
+	ilog(LOG_INFO, "Setting ICE candidate pair "PAIR_FORMAT" as failed", PAIR_FMT(pair));
 	PAIR_SET(pair, FAILED);
 	PAIR_CLEAR(pair, IN_PROGRESS);
 }
@@ -603,7 +603,7 @@ static void __do_ice_check(struct ice_candidate_pair *pair) {
 
 	mutex_unlock(&ag->lock);
 
-	ilog(LOG_DEBUG, "Sending %sICE/STUN request for candidate pair "PAIR_FORMAT" from %s to %s%s%s",
+	ilog(LOG_INFO, "Sending %sICE/STUN request for candidate pair "PAIR_FORMAT" from %s to %s%s%s",
 			PAIR_ISSET(pair, TO_USE) ? "nominating " : "",
 			PAIR_FMT(pair), sockaddr_print_buf(&pair->local_intf->spec->local_address.addr),
 			FMT_M(endpoint_print_buf(&pair->remote_candidate->endpoint)));
@@ -641,7 +641,7 @@ static void __nominate_pairs(struct ice_agent *ag) {
 	GList *l;
 	struct ice_candidate_pair *pair;
 
-	ilog(LOG_DEBUG, "Start nominating ICE pairs");
+	ilog(LOG_INFO, "Start nominating ICE pairs");
 
 	AGENT_SET(ag, NOMINATING);
 	ZERO(ag->start_nominating);
@@ -650,7 +650,7 @@ static void __nominate_pairs(struct ice_agent *ag) {
 
 	for (l = complete.head; l; l = l->next) {
 		pair = l->data;
-		ilog(LOG_DEBUG, "Nominating ICE pair "PAIR_FORMAT, PAIR_FMT(pair));
+		ilog(LOG_INFO, "Nominating ICE pair "PAIR_FORMAT, PAIR_FMT(pair));
 		PAIR_CLEAR(pair, IN_PROGRESS);
 		PAIR_SET2(pair, NOMINATED, TO_USE);
 		pair->retransmits = 0;
@@ -774,7 +774,7 @@ check:
 }
 
 static void __agent_shutdown(struct ice_agent *ag) {
-	ilog(LOG_DEBUG, "Shutting down ICE agent (nothing to do)");
+	ilog(LOG_INFO, "Shutting down ICE agent (nothing to do)");
 	__agent_deschedule(ag);
 }
 
@@ -863,7 +863,7 @@ out:
 static void __trigger_check(struct ice_candidate_pair *pair) {
 	struct ice_agent *ag = pair->agent;
 
-	ilog(LOG_DEBUG, "Triggering check for "PAIR_FORMAT, PAIR_FMT(pair));
+	ilog(LOG_INFO, "Triggering check for "PAIR_FORMAT, PAIR_FMT(pair));
 
 	mutex_lock(&ag->lock);
 	pair->retransmits = 0;
@@ -883,7 +883,7 @@ static void __recalc_pair_prios(struct ice_agent *ag) {
 	GList *l;
 	GQueue nominated, valid, succ, all;
 
-	ilog(LOG_DEBUG, "Recalculating all ICE pair priorities");
+	ilog(LOG_INFO, "Recalculating all ICE pair priorities");
 
 	g_tree_remove_all(&nominated, ag->nominated_pairs);
 	g_tree_remove_all(&succ, ag->succeeded_pairs);
@@ -913,7 +913,7 @@ static void __role_change(struct ice_agent *ag, int new_controlling) {
 	else
 		return;
 
-	ilog(LOG_DEBUG, "ICE role change, now %s", new_controlling ? "controlling" : "controlled");
+	ilog(LOG_INFO, "ICE role change, now %s", new_controlling ? "controlling" : "controlled");
 
 	/* recalc priorities and resort list */
 
@@ -984,12 +984,12 @@ static int __check_valid(struct ice_agent *ag) {
 	__get_complete_valid_pairs(&all_compos, ag);
 
 	if (!all_compos.length) {
-		ilog(LOG_DEBUG, "ICE not completed yet");
+		ilog(LOG_INFO, "ICE not completed yet");
 		return 0;
 	}
 
 	pair = all_compos.head->data;
-	ilog(LOG_DEBUG, "ICE completed, using pair "PAIR_FORMAT, PAIR_FMT(pair));
+	ilog(LOG_INFO, "ICE completed, using pair "PAIR_FORMAT, PAIR_FMT(pair));
 	AGENT_SET(ag, COMPLETED);
 
 	for (l = media->streams.head, k = all_compos.head; l && k; l = l->next, k = k->next) {
@@ -1089,7 +1089,7 @@ int ice_request(struct stream_fd *sfd, const endpoint_t *src,
 	ret = 0;
 
 	if (attrs->use && !PAIR_SET(pair, NOMINATED)) {
-		ilog(LOG_DEBUG, "ICE pair "PAIR_FORMAT" has been nominated by peer", PAIR_FMT(pair));
+		ilog(LOG_INFO, "ICE pair "PAIR_FORMAT" has been nominated by peer", PAIR_FMT(pair));
 
 		mutex_lock(&ag->lock);
 
@@ -1124,11 +1124,11 @@ static int __check_succeeded_complete(struct ice_agent *ag) {
 	__get_complete_succeeded_pairs(&complete, ag);
 	if (complete.length) {
 		struct ice_candidate_pair *pair = complete.head->data;
-		ilog(LOG_DEBUG, "Best succeeded ICE pair with all components is "PAIR_FORMAT, PAIR_FMT(pair));
+		ilog(LOG_INFO, "Best succeeded ICE pair with all components is "PAIR_FORMAT, PAIR_FMT(pair));
 		ret = 1;
 	}
 	else {
-		ilog(LOG_DEBUG, "No succeeded ICE pairs with all components yet");
+		ilog(LOG_INFO, "No succeeded ICE pairs with all components yet");
 		ret = 0;
 	}
 	g_queue_clear(&complete);
@@ -1149,7 +1149,7 @@ int ice_response(struct stream_fd *sfd, const endpoint_t *src,
 	const struct local_intf *ifa;
 	int ret, was_ctl;
 
-	__DBG("received ICE response from %s on %s", endpoint_print_buf(src),
+	ilog(LOG_INFO, "received ICE response from %s on %s", endpoint_print_buf(src),
 			endpoint_print_buf(&sfd->socket.local));
 
 	ag = media->ice_agent;
@@ -1170,7 +1170,7 @@ int ice_response(struct stream_fd *sfd, const endpoint_t *src,
 
 	ifa = pair->local_intf;
 
-	ilog(LOG_DEBUG, "Received ICE/STUN response code %u for candidate pair "PAIR_FORMAT" from %s%s%s to %s",
+	ilog(LOG_INFO, "Received ICE/STUN response code %u for candidate pair "PAIR_FORMAT" from %s%s%s to %s",
 			attrs->error_code, PAIR_FMT(pair),
 			FMT_M(endpoint_print_buf(&pair->remote_candidate->endpoint)),
 			sockaddr_print_buf(&ifa->spec->local_address.addr));
@@ -1204,7 +1204,7 @@ int ice_response(struct stream_fd *sfd, const endpoint_t *src,
 
 	/* check if we're in the final (controlling) phase */
 	if (pair->was_nominated && PAIR_CLEAR(pair, TO_USE)) {
-		ilog(LOG_DEBUG, "Setting nominated ICE candidate pair "PAIR_FORMAT" as valid", PAIR_FMT(pair));
+		ilog(LOG_INFO, "Setting nominated ICE candidate pair "PAIR_FORMAT" as valid", PAIR_FMT(pair));
 		PAIR_SET(pair, VALID);
 		g_tree_insert(ag->valid_pairs, pair, pair);
 		ret = __check_valid(ag);
@@ -1214,7 +1214,7 @@ int ice_response(struct stream_fd *sfd, const endpoint_t *src,
 	if (PAIR_SET(pair, SUCCEEDED))
 		goto out_unlock;
 
-	ilog(LOG_DEBUG, "Setting ICE candidate pair "PAIR_FORMAT" as succeeded", PAIR_FMT(pair));
+	ilog(LOG_INFO, "Setting ICE candidate pair "PAIR_FORMAT" as succeeded", PAIR_FMT(pair));
 	g_tree_insert(ag->succeeded_pairs, pair, pair);
 
 	if (!ag->start_nominating.tv_sec) {
@@ -1241,7 +1241,7 @@ int ice_response(struct stream_fd *sfd, const endpoint_t *src,
 		if (!PAIR_CLEAR(opair, FROZEN))
 			continue;
 
-		ilog(LOG_DEBUG, "Unfreezing related ICE pair "PAIR_FORMAT, PAIR_FMT(opair));
+		ilog(LOG_INFO, "Unfreezing related ICE pair "PAIR_FORMAT, PAIR_FMT(opair));
 	}
 
 	/* if this was previously nominated by the peer, it's now valid */
