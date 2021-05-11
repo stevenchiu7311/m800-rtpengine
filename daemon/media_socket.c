@@ -1724,6 +1724,7 @@ static int do_rtcp(struct packet_handler_ctx *phc) {
 				goto out;
 	} else {
 		srtp_report(&phc->mp);
+		ilog(LOG_INFO, "[do_rtcp] homer_stats, src_ep: %s%s%s dst_ep: %s%s%s", FMT_M(endpoint_print_buf(&phc->mp.fsin)), FMT_M(endpoint_print_buf(&phc->mp.sfd->socket.local)));
 	}
 
 	// queue for output
@@ -1892,6 +1893,15 @@ drop:
 	atomic64_inc(&rtpe_statsps.packets);
 	atomic64_add(&rtpe_statsps.bytes, phc->s.len);
 
+	// atomic64_t received_packets = atomic64_get_na(&phc->mp.stream->stats.packets);
+	// ilog(LOG_DBG, "[stream_packet] Receive RTP src_ep:%s%s%s received_packets: %lu", FMT_M(endpoint_print_buf(&phc->mp.fsin)), received_packets);
+	long long diff = timeval_diff(&rtpe_now, &phc->mp.stream->stats.last_report);
+	if (diff > 20000 * 1000) {
+		phc->mp.stream->stats.last_report.tv_sec = rtpe_now.tv_sec;
+		phc->mp.stream->stats.last_report.tv_usec = rtpe_now.tv_usec;
+		srtp_report(&phc->mp);
+		ilog(LOG_INFO, "[stream_packet] homer_stats, callid: "STR_FORMAT" src_ep: %s%s%s dst_ep: %s%s%s", STR_FMT(&phc->mp.stream->call->callid), FMT_M(endpoint_print_buf(&phc->mp.fsin)), FMT_M(endpoint_print_buf(&phc->mp.sfd->socket.local)));
+	}
 out:
 	if (phc->unkernelize) {
 		stream_unconfirm(phc->mp.stream);

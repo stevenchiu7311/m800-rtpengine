@@ -36,4 +36,6 @@ rtcp_filter_func rtcp_avpf2avp_filter;
 
 void rtcp_init(void);
 
+GString* homer_stats(struct packet_stream *ps);
+
 #endif

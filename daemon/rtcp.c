@@ -318,7 +318,6 @@ static void homer_sdes_item(struct rtcp_process_ctx *, const struct sdes_chunk *
 static void homer_sdes_list_end(struct rtcp_process_ctx *);
 static void homer_finish(struct rtcp_process_ctx *, struct call *, const endpoint_t *, const endpoint_t *,
 		const struct timeval *);
-static GString* homer_stats(struct media_packet *mp);
 
 // syslog functions
 static void logging_init(struct rtcp_process_ctx *);
@@ -645,7 +644,7 @@ void rtcp_list_free(GQueue *q) {
 
 
 void srtp_report(struct media_packet *mp) {
-	GString* stat_json = homer_stats(mp);
+	GString* stat_json = homer_stats(mp->stream);
 	if (stat_json) {
 		homer_send_generic(stat_json, &mp->call->callid, &mp->fsin, &mp->sfd->socket.local, &mp->tv, PROTO_LOG);
 	}
@@ -1080,11 +1079,11 @@ static void homer_sdes_list_end(struct rtcp_process_ctx *ctx) {
 	g_string_append_printf(ctx->json, "],");
 }
 
-static GString* homer_stats(struct media_packet *mp) {
+GString* homer_stats(struct packet_stream *ps) {
 	GString *json = g_string_new("");
-	int received_packets = atomic64_get_na(&mp->stream->stats.packets);
-	int received_bytes = atomic64_get_na(&mp->stream->stats.bytes);
-	int received_errors = atomic64_get_na(&mp->stream->stats.errors);
+	u_int64_t received_packets = atomic64_get_na(&ps->stats.packets);
+	u_int64_t received_bytes = atomic64_get_na(&ps->stats.bytes);
+	u_int64_t received_errors = atomic64_get_na(&ps->stats.errors);
 
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
@@ -1093,9 +1092,9 @@ static GString* homer_stats(struct media_packet *mp) {
 
 	g_string_append_printf(json,
 		"{"
-		"\"packets\":%u,"
-		"\"bytes\":%u,"
-		"\"errors\":%u,"
+		"\"packets\":%lu,"
+		"\"bytes\":%lu,"
+		"\"errors\":%lu,"
 		"\"time\":%ld"
 		"}",
 		received_packets,
