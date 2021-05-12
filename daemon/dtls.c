@@ -708,6 +708,7 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		return 0;
 	}
 	else if (ret == 1) {
+		ilog(LOG_INFO, "DTLS try_connect succ %d", ret);
 		/* connected! */
 		mutex_lock(&ps->out_lock); // nested lock!
 		if (dtls_setup_crypto(ps, d))
@@ -726,12 +727,15 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 			mutex_unlock(&ps->rtcp_sibling->out_lock);
 			mutex_unlock(&ps->rtcp_sibling->in_lock);
 		}
+		ilog(LOG_INFO, "DTLS setup_crypto finish");
 	}
 
 	while (1) {
 		ret = BIO_ctrl_pending(d->w_bio);
-		if (ret <= 0)
+		if (ret <= 0) {
+			ilog(LOG_INFO, "DTLS BIO_ctrl_pending break %d", ret);
 			break;
+		}
 
 		if (ret > sizeof(buf)) {
 			ilog(LOG_ERROR, "BIO buffer overflow");
@@ -740,8 +744,10 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		}
 
 		ret = BIO_read(d->w_bio, buf, ret);
-		if (ret <= 0)
+		if (ret <= 0) {
+			ilog(LOG_INFO, "DTLS BIO_read break %d", ret);
 			break;
+		}
 
 		__DBG("dtls packet output: len %u %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 			ret,

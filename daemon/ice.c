@@ -1041,7 +1041,7 @@ int ice_request(struct stream_fd *sfd, const endpoint_t *src,
 	struct ice_candidate_pair *pair;
 	int ret;
 
-	__DBG("received ICE request from %s on %s", endpoint_print_buf(src),
+	ilog(LOG_INFO, "received ICE request from %s on %s", endpoint_print_buf(src),
 			endpoint_print_buf(&sfd->socket.local));
 
 	ag = media->ice_agent;
