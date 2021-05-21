@@ -1688,6 +1688,10 @@ static int process_media_attributes(struct sdp_chopper *chop, struct sdp_media *
 	for (l = attrs->list.head; l; l = l->next) {
 		attr = l->data;
 
+		if (str_cmp(&sdp->media_type, "video") == 0 && flags->strip_video_media) {
+			ilog(LOG_INFO, "Strip sdp media full line in no support video case. [type: %.*s][strip_video_media:%d][port = %ld]", sdp->media_type.len, sdp->media_type.s, flags->strip_video_media, sdp->port_num);
+			goto strip;
+		}
 		switch (attr->attr) {
 			case ATTR_ICE:
 			case ATTR_ICE_UFRAG:
@@ -2150,6 +2154,10 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 						ilog(LOG_ERROR, "Won't fix MID for unkown media type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
 					}
 				}
+			}
+			if (!str_cmp(&sdp_media->media_type, "video") && flags->strip_video_media) {
+				ilog(LOG_INFO, "No sdp media insertion in no support video case. [type: %.*s][strip_video_media:%d][port = %ld]", sdp_media->media_type.len, sdp_media->media_type.s, flags->strip_video_media, sdp_media->port_num);
+				goto next;
 			}
 
 			insert_codec_parameters(chop, call_media);
