@@ -711,6 +711,9 @@ static void call_ng_flags_flags(struct sdp_ng_flags *out, str *s, void *dummy) {
 		case CSH_LOOKUP("force-unified"):
 			out->force_unified = 1;
 			break;
+		case CSH_LOOKUP("strip-video-sdp"):
+			out->strip_video_sdp = 1;
+			break;
 		case CSH_LOOKUP("strip-video-media"):
 			out->strip_video_media = 1;
 			break;

@@ -92,6 +92,7 @@ struct sdp_ng_flags {
 	    force_reset:1,
 	    dtls_ignore_endpoint_changes:1,
 	    force_unified:1,
+	    strip_video_sdp:1,
 	    strip_video_media:1;
 };
 

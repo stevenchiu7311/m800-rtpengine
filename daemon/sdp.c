@@ -2085,6 +2085,11 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 
 		for (k = session->media_streams.head; k; k = k->next) {
 			sdp_media = k->data;
+			if (!str_cmp(&sdp_media->media_type, "video") && flags->strip_video_sdp) {
+				ilog(LOG_INFO, "No sdp insertion in no support video case. [type: %.*s][strip_video_media:%d][port = %ld]", sdp_media->media_type.len, sdp_media->media_type.s, flags->strip_video_media, sdp_media->port_num);
+				skip_over(chop, &sdp_media->s);
+				goto next;
+			}
 			if (!m)
 				goto error;
 			call_media = m->data;
