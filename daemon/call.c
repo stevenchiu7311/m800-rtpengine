@@ -589,7 +589,7 @@ static void call_timer(void *ptr) {
 		DS(bytes);
 		DS(errors);
 
-		GString* stat_json = homer_stats(ps);
+		GString* stat_json = homer_stats(TYPE_PACKET_REPORT_CALL_TIMER, ps);
 		if (stat_json) {
 			homer_send_generic(stat_json, &ps->call->callid, &ep_src_addr, &ep_dst_addr, &rtpe_now, PROTO_LOG);
 		}

@@ -643,8 +643,8 @@ void rtcp_list_free(GQueue *q) {
 }
 
 
-void srtp_report(struct media_packet *mp) {
-	GString* stat_json = homer_stats(mp->stream);
+void srtp_report(enum rtp_report_t type, struct media_packet *mp) {
+	GString* stat_json = homer_stats(type, mp->stream);
 	if (stat_json) {
 		homer_send_generic(stat_json, &mp->call->callid, &mp->fsin, &mp->sfd->socket.local, &mp->tv, PROTO_LOG);
 	}
@@ -1079,7 +1079,7 @@ static void homer_sdes_list_end(struct rtcp_process_ctx *ctx) {
 	g_string_append_printf(ctx->json, "],");
 }
 
-GString* homer_stats(struct packet_stream *ps) {
+GString* homer_stats(enum rtp_report_t type, struct packet_stream *ps) {
 	GString *json = g_string_new("");
 	u_int64_t received_packets = atomic64_get_na(&ps->stats.packets);
 	u_int64_t received_bytes = atomic64_get_na(&ps->stats.bytes);
@@ -1092,11 +1092,13 @@ GString* homer_stats(struct packet_stream *ps) {
 
 	g_string_append_printf(json,
 		"{"
+		"\"type\":%d,"
 		"\"packets\":%lu,"
 		"\"bytes\":%lu,"
 		"\"errors\":%lu,"
 		"\"time\":%ld"
 		"}",
+		type,
 		received_packets,
 		received_bytes,
 		received_errors,
@@ -1110,7 +1112,7 @@ static void homer_finish(struct rtcp_process_ctx *ctx, struct call *c, const end
 	str_sanitize(ctx->json);
 	g_string_append(ctx->json, " }");
 
-	srtp_report(ctx->mp);
+	srtp_report(TYPE_PACKET_REPORT_RTCP, ctx->mp);
 	if (ctx->json->len > ctx->json_init_len + 2)
 		homer_send(ctx->json, &c->callid, src, dst, tv);
 	else

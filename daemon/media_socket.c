@@ -1725,7 +1725,7 @@ static int do_rtcp(struct packet_handler_ctx *phc) {
 			if (phc->rtcp_filter(&phc->mp, &rtcp_list))
 				goto out;
 	} else {
-		srtp_report(&phc->mp);
+		srtp_report(TYPE_PACKET_REPORT_RTCP, &phc->mp);
 		ilog(LOG_INFO, "[stream_packet][do_rtcp] homer_stats, src_ep: %s%s%s dst_ep: %s%s%s", FMT_M(endpoint_print_buf(&phc->mp.fsin)), FMT_M(endpoint_print_buf(&phc->mp.sfd->socket.local)));
 	}
 
@@ -1901,7 +1901,7 @@ drop:
 	if (diff > 3000 * 1000) {
 		phc->mp.stream->stats.last_report.tv_sec = rtpe_now.tv_sec;
 		phc->mp.stream->stats.last_report.tv_usec = rtpe_now.tv_usec;
-		srtp_report(&phc->mp);
+		srtp_report(TYPE_PACKET_REPORT_RTCP, &phc->mp);
 		ilog(LOG_INFO, "[stream_packet][force_report] homer_stats, callid: "STR_FORMAT" src_ep: %s%s%s dst_ep: %s%s%s", STR_FMT(&phc->mp.stream->call->callid), FMT_M(endpoint_print_buf(&phc->mp.fsin)), FMT_M(endpoint_print_buf(&phc->mp.sfd->socket.local)));
 	}
 out:
