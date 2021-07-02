@@ -22,6 +22,8 @@ struct rtcp_parse_ctx {
 enum rtp_report_t {
 	TYPE_PACKET_REPORT_RTCP = 0,
 	TYPE_PACKET_REPORT_CALL_TIMER,
+	TYPE_RTCP_REPORT,
+	TYPE_UNDEFINED,
 };
 
 extern struct rtcp_handler *rtcp_transcode_handler;

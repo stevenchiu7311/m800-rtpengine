@@ -242,6 +242,9 @@ struct rtcp_process_ctx {
 	GString *log;
 	int log_init_len;
 
+	GString *custom_log;
+	int custom_log_init_len;
+
 	// Homer stats
 	GString *json;
 	int json_init_len;
@@ -471,6 +474,7 @@ static const int min_xr_packet_sizes[] = {
 
 
 struct rtcp_handler *rtcp_transcode_handler = &transcode_handlers;
+static void str_sanitize(GString *s);
 
 
 
@@ -642,6 +646,43 @@ void rtcp_list_free(GQueue *q) {
 	g_queue_clear_full(q, rtcp_ce_free);
 }
 
+void rtcp_report(struct rtcp_process_ctx *ctx) {
+	struct media_packet *mp = ctx->mp;
+
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+
+	uint64_t time_in_second = (tv.tv_sec) + (tv.tv_usec) / 1000000 ; // convert tv_sec & tv_usec to millisecond
+
+	g_string_append_printf(ctx->custom_log,
+		"\"type\":%d,"
+		"\"time\":%lu,",
+		TYPE_RTCP_REPORT,
+		time_in_second);
+
+	struct ssrc_entry_call *other_e = get_ssrc(ctx->scratch.rr.from, ctx->mp->call->ssrc_hash);
+	if (G_LIKELY(other_e) && G_LIKELY(other_e->stats_blocks.length > 0)) {
+		struct ssrc_stats_block *last_ssb = g_queue_peek_tail(&other_e->stats_blocks);
+		g_string_append_printf(ctx->custom_log,
+			"\"summary\": {"
+			"\"ssrc\":%u,"
+			"\"rtt\":%lu,"
+			"\"ssb->mos\":%lu,"
+			"\"lowest_mos\":%lu,"
+			"\"highest_mos\":%lu"
+			"}",
+			ctx->scratch.rr.ssrc,
+			last_ssb->rtt,
+			last_ssb->mos,
+			other_e->lowest_mos->mos,
+			other_e->highest_mos->mos);
+	}
+
+	str_sanitize(ctx->custom_log);
+	g_string_append(ctx->custom_log, " }");
+
+	homer_send_generic(ctx->custom_log, &mp->call->callid, &mp->fsin, &mp->sfd->socket.local, &mp->tv, PROTO_LOG);
+}
 
 void srtp_report(enum rtp_report_t type, struct media_packet *mp) {
 	GString* stat_json = homer_stats(type, mp->stream);
@@ -998,10 +1039,21 @@ static void scratch_xr_voip_metrics(struct rtcp_process_ctx *ctx, const struct x
 static void homer_init(struct rtcp_process_ctx *ctx) {
 	ctx->json = g_string_new("{ ");
 	ctx->json_init_len = ctx->json->len;
+
+	ctx->custom_log = g_string_new("{ ");
+	ctx->custom_log_init_len = ctx->custom_log->len;
 }
 static void homer_sr(struct rtcp_process_ctx *ctx, struct sender_report_packet *sr) {
 	g_string_append_printf(ctx->json, "\"sender_information\":{\"ntp_timestamp_sec\":%u,"
 	"\"ntp_timestamp_usec\":%u,\"octets\":%u,\"rtp_timestamp\":%u, \"packets\":%u},",
+		ctx->scratch.sr.ntp_msw,
+		ctx->scratch.sr.ntp_lsw,
+		ctx->scratch.sr.octet_count,
+		ctx->scratch.sr.timestamp,
+		ctx->scratch.sr.packet_count);
+	g_string_append_printf(ctx->custom_log, "\"sr\":{\"ssrc\":%u,\"ntp_timestamp_sec\":%u,"
+	"\"ntp_timestamp_usec\":%u,\"octets\":%u,\"rtp_timestamp\":%u, \"packets\":%u},",
+		ctx->scratch_common_ssrc,
 		ctx->scratch.sr.ntp_msw,
 		ctx->scratch.sr.ntp_lsw,
 		ctx->scratch.sr.octet_count,
@@ -1016,6 +1068,16 @@ static void homer_rr_list_start(struct rtcp_process_ctx *ctx, const struct rtcp_
 }
 static void homer_rr(struct rtcp_process_ctx *ctx, struct report_block *rr) {
 	g_string_append_printf(ctx->json, "{\"source_ssrc\":%u,"
+	    "\"highest_seq_no\":%u,\"fraction_lost\":%u,\"ia_jitter\":%u,"
+	    "\"packets_lost\":%u,\"lsr\":%u,\"dlsr\":%u},",
+		ctx->scratch.rr.ssrc,
+		ctx->scratch.rr.high_seq_received,
+		ctx->scratch.rr.fraction_lost,
+		ctx->scratch.rr.jitter,
+		ctx->scratch.rr.packets_lost,
+		ctx->scratch.rr.lsr,
+		ctx->scratch.rr.dlsr);
+	g_string_append_printf(ctx->custom_log, "\"rr\": {\"source_ssrc\":%u,"
 	    "\"highest_seq_no\":%u,\"fraction_lost\":%u,\"ia_jitter\":%u,"
 	    "\"packets_lost\":%u,\"lsr\":%u,\"dlsr\":%u},",
 		ctx->scratch.rr.ssrc,
@@ -1112,6 +1174,7 @@ static void homer_finish(struct rtcp_process_ctx *ctx, struct call *c, const end
 	str_sanitize(ctx->json);
 	g_string_append(ctx->json, " }");
 
+	rtcp_report(ctx);
 	srtp_report(TYPE_PACKET_REPORT_RTCP, ctx->mp);
 	if (ctx->json->len > ctx->json_init_len + 2)
 		homer_send(ctx->json, &c->callid, src, dst, tv);
