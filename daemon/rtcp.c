@@ -666,12 +666,14 @@ void rtcp_report(struct rtcp_process_ctx *ctx) {
 		g_string_append_printf(ctx->custom_log,
 			"\"summary\": {"
 			"\"ssrc\":%u,"
+			"\"jitter\":%lu,"
 			"\"rtt\":%lu,"
-			"\"ssb->mos\":%lu,"
+			"\"mos\":%lu,"
 			"\"lowest_mos\":%lu,"
 			"\"highest_mos\":%lu"
 			"}",
 			ctx->scratch.rr.ssrc,
+			last_ssb->jitter,
 			last_ssb->rtt,
 			last_ssb->mos,
 			other_e->lowest_mos->mos,
