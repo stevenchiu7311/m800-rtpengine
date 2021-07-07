@@ -1079,9 +1079,10 @@ static void homer_rr(struct rtcp_process_ctx *ctx, struct report_block *rr) {
 		ctx->scratch.rr.packets_lost,
 		ctx->scratch.rr.lsr,
 		ctx->scratch.rr.dlsr);
-	g_string_append_printf(ctx->custom_log, "\"rr\": {\"source_ssrc\":%u,"
+	g_string_append_printf(ctx->custom_log, "\"rr\": {\"from_ssrc\":%u,\"ssrc\":%u,"
 	    "\"highest_seq_no\":%u,\"fraction_lost\":%u,\"ia_jitter\":%u,"
 	    "\"packets_lost\":%u,\"lsr\":%u,\"dlsr\":%u},",
+		ctx->scratch.rr.from,
 		ctx->scratch.rr.ssrc,
 		ctx->scratch.rr.high_seq_received,
 		ctx->scratch.rr.fraction_lost,
