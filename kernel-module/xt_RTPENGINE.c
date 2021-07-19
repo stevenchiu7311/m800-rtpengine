@@ -36,6 +36,11 @@
 
 MODULE_LICENSE("GPL");
 
+// fix for older compilers
+#ifndef RHEL_RELEASE_VERSION
+#define RHEL_RELEASE_VERSION(x,y) 0
+#endif
+
 
 
 
