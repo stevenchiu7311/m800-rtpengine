@@ -771,6 +771,7 @@ static void call_ng_process_flags(struct sdp_ng_flags *out, bencode_item_t *inpu
 	bencode_dictionary_get_str(input, "via-branch", &out->via_branch);
 	bencode_dictionary_get_str(input, "label", &out->label);
 	bencode_dictionary_get_str(input, "address", &out->address);
+	bencode_dictionary_get_str(input, "session-id", &out->session_id);
 
 	diridx = 0;
 	if ((list = bencode_dictionary_get_expect(input, "direction", BENCODE_LIST))) {
@@ -1005,12 +1006,12 @@ static const char *call_offer_answer_ng(bencode_item_t *input,
 				}
 				call_destroy(call);
 				obj_put(call);
-				call = call_get_or_create(&flags.call_id, CT_OWN_CALL);
+				call = call_get_or_create_with_session_id(&flags.call_id, &flags.session_id, CT_OWN_CALL);
 			}
 		}
 		else {
 			/* call == NULL, should create call */
-			call = call_get_or_create(&flags.call_id, CT_OWN_CALL);
+			call = call_get_or_create_with_session_id(&flags.call_id, &flags.session_id, CT_OWN_CALL);
 		}
 	}
 

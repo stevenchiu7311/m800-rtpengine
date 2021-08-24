@@ -39,12 +39,13 @@ static void ilog_prefix_default(char *prefix, size_t prefix_len) {
 			prefix[0] = 0;
 			break;
 		case LOG_INFO_CALL:
-			snprintf(prefix, prefix_len, "[" STR_FORMAT_M "]: ",
-					STR_FMT_M(&log_info.u.call->callid));
+			snprintf(prefix, prefix_len, "[" STR_FORMAT_M "][" STR_FORMAT_M "]: ",
+					STR_FMT_M(&log_info.u.call->session_id), STR_FMT_M(&log_info.u.call->callid));
 			break;
 		case LOG_INFO_STREAM_FD:
 			if (log_info.u.stream_fd->call)
-				snprintf(prefix, prefix_len, "[" STR_FORMAT_M " port %5u]: ",
+				snprintf(prefix, prefix_len, "[" STR_FORMAT_M "][" STR_FORMAT_M " port %5u]: ",
+						STR_FMT_M(&log_info.u.stream_fd->call->session_id),
 						STR_FMT_M(&log_info.u.stream_fd->call->callid),
 						log_info.u.stream_fd->socket.local.port);
 			break;
@@ -57,7 +58,8 @@ static void ilog_prefix_default(char *prefix, size_t prefix_len) {
 					FMT_M(log_info.u.cstr));
 			break;
 		case LOG_INFO_ICE_AGENT:
-			snprintf(prefix, prefix_len, "[" STR_FORMAT_M "/" STR_FORMAT_M "/%u]: ",
+			snprintf(prefix, prefix_len, "[" STR_FORMAT_M "][" STR_FORMAT_M "/" STR_FORMAT_M "/%u]: ",
+					STR_FMT_M(&log_info.u.ice_agent->call->session_id),
 					STR_FMT_M(&log_info.u.ice_agent->call->callid),
 					STR_FMT_M(&log_info.u.ice_agent->media->monologue->tag),
 					log_info.u.ice_agent->media->index);
