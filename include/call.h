@@ -379,6 +379,7 @@ struct call {
 
 	str			callid;
 	str			session_id;
+	str			context;
 	struct timeval		created;
 	time_t			last_signal;
 	time_t			deleted;
@@ -420,7 +421,7 @@ struct packet_stream *__packet_stream_new(struct call *call);
 
 
 struct call *call_get_or_create(const str *callid, enum call_type);
-struct call *call_get_or_create_with_session_id(const str *callid, const str *session_id, enum call_type);
+struct call *call_get_or_create_with_session_id(const str *callid, const str *session_id, const str *context, enum call_type);
 struct call *call_get_opmode(const str *callid, enum call_opmode opmode);
 struct call_monologue *call_get_mono_dialogue(struct call *call, const str *fromtag, const str *totag,
 		const str *viabranch);

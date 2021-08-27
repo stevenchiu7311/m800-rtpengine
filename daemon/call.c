@@ -2457,11 +2457,12 @@ static struct call *call_create(const str *callid) {
 }
 
 struct call *call_get_or_create(const str *callid, enum call_type type) {
-	return call_get_or_create_with_session_id(callid, callid, type);
+	str context;
+	return call_get_or_create_with_session_id(callid, callid, &context, type);
 }
 
 /* returns call with master_lock held in W */
-struct call *call_get_or_create_with_session_id(const str *callid, const str *session_id, enum call_type type) {
+struct call *call_get_or_create_with_session_id(const str *callid, const str *session_id, const str *context, enum call_type type) {
 	struct call *c;
 
 restart:
@@ -2472,6 +2473,7 @@ restart:
 		/* completely new call-id, create call */
 		c = call_create(callid);
 		call_str_cpy(c, &c->session_id, session_id);
+		call_str_cpy(c, &c->context, context);
 		rwlock_lock_w(&rtpe_callhash_lock);
 		if (g_hash_table_lookup(rtpe_callhash, callid)) {
 			/* preempted */

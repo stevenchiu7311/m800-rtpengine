@@ -654,12 +654,15 @@ void rtcp_report(struct rtcp_process_ctx *ctx) {
 
 	uint64_t time_in_second = (tv.tv_sec) + (tv.tv_usec) / 1000000 ; // convert tv_sec & tv_usec to millisecond
 	str *session_id = &ctx->mp->call->session_id;
+	str *context = &ctx->mp->call->context;
 
 	g_string_append_printf(ctx->custom_log,
 		"\"session_id\":\""STR_FORMAT"\","
+		"\"context\":"STR_FORMAT","
 		"\"type\":%d,"
 		"\"time\":%lu,",
 		STR_FMT(session_id),
+		STR_FMT(context),
 		TYPE_RTCP_REPORT,
 		time_in_second);
 
@@ -1158,10 +1161,12 @@ GString* homer_stats(enum rtp_report_t type, struct packet_stream *ps) {
 
 	uint64_t time_in_second = (tv.tv_sec) + (tv.tv_usec) / 1000000 ; // convert tv_sec & tv_usec to millisecond
 	str *session_id = &ps->call->session_id;
+	str *context = &ps->call->context;
 
 	g_string_append_printf(json,
 		"{"
 		"\"session_id\":\""STR_FORMAT"\","
+		"\"context\":"STR_FORMAT","
 		"\"type\":%d,"
 		"\"packets\":%lu,"
 		"\"bytes\":%lu,"
@@ -1169,6 +1174,7 @@ GString* homer_stats(enum rtp_report_t type, struct packet_stream *ps) {
 		"\"time\":%ld"
 		"}",
 		STR_FMT(session_id),
+		STR_FMT(context),
 		type,
 		received_packets,
 		received_bytes,

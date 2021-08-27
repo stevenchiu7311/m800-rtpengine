@@ -28,6 +28,7 @@ struct sdp_ng_flags {
 	str transport_protocol_str;
 	str address_family_str;
 	str session_id;
+	str context;
 	const struct transport_protocol *transport_protocol;
 	sockaddr_t parsed_received_from;
 	sockaddr_t parsed_media_address;
