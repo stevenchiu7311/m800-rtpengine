@@ -65,13 +65,14 @@ static void __reset(struct homer_sender *hs) {
 	hs->partial = NULL;
 }
 
-static int __attempt_send(struct homer_sender *hs, GString *gs) {
+static int __attempt_send(struct homer_sender *hs, GString **gs) {
 	int ret;
 
-	ret = write(hs->socket.fd, gs->str, gs->len);
-	if (ret == gs->len) {
+	ret = write(hs->socket.fd, (*gs)->str, (*gs)->len);
+	if (ret == (*gs)->len) {
 		// full write
-		g_string_free(gs, TRUE);
+		g_string_free(*gs, TRUE);
+		*gs = NULL;
 		return 0;
 	}
 	if (ret < 0) {
@@ -87,7 +88,7 @@ static int __attempt_send(struct homer_sender *hs, GString *gs) {
 	}
 	// partial write
 	ilog(LOG_DEBUG, "Home write blocked (partial write)");
-	g_string_erase(gs, 0, ret);
+	g_string_erase(*gs, 0, ret);
 	return 3;
 }
 
@@ -110,20 +111,24 @@ static int __established(struct homer_sender *hs) {
 
 	if (hs->partial) {
 		ilog(LOG_DEBUG, "dequeue partial packet to Homer");
-		ret = __attempt_send(hs, hs->partial);
+		ret = __attempt_send(hs, &hs->partial);
 		if (ret == 3 || ret == 2) // partial write or not sent at all
 			return 0;
 		if (ret == 1) // write error, takes care of deleting hs->partial
 			return -1;
 		// ret == 0 -> sent OK, drop through to unqueue
-		g_string_free(hs->partial, TRUE);
-		hs->partial = NULL;
+		if (hs->partial != NULL) {
+			g_string_free(hs->partial, TRUE);
+			hs->partial = NULL;
+		} else {
+			ilog(LOG_WARN, "Partial string has already been free");
+		}
 	}
 
 	// unqueue as much as we can
 	while ((gs = g_queue_pop_head(&hs->send_queue))) {
 		ilog(LOG_DEBUG, "dequeue send queue to Homer");
-		ret = __attempt_send(hs, gs);
+		ret = __attempt_send(hs, &gs);
 		if (ret == 0) // everything sent OK
 			continue;
 		if (ret == 3) { // partial write
