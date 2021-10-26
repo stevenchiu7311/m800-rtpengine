@@ -903,6 +903,21 @@ static void call_ng_flags_flags(struct sdp_ng_flags *out, str *s, void *dummy) {
 		case CSH_LOOKUP("NAT-wait"):
 			out->nat_wait = 1;
 			break;
+		case CSH_LOOKUP("force-reset"):
+			out->force_reset = 1;
+			break;
+		case CSH_LOOKUP("dtls-ignore-endpoint-changes"):
+			out->dtls_ignore_endpoint_changes = 1;
+			break;
+		case CSH_LOOKUP("force-unified"):
+			out->force_unified = 1;
+			break;
+		case CSH_LOOKUP("strip-video-sdp"):
+			out->strip_video_sdp = 1;
+			break;
+		case CSH_LOOKUP("strip-video-media"):
+			out->strip_video_media = 1;
+			break;
 		default:
 			// handle values aliases from other dictionaries
 			if (call_ng_flags_prefix(out, s, "SDES-no-", call_ng_flags_str_ht, &out->sdes_no))
@@ -981,6 +996,8 @@ static void call_ng_process_flags(struct sdp_ng_flags *out, bencode_item_t *inpu
 	bencode_dictionary_get_str(input, "address", &out->address);
 	bencode_get_alt(input, "sdp", "SDP", &out->sdp);
 	bencode_dictionary_get_str(input, "interface", &out->interface);
+	bencode_dictionary_get_str(input, "session-id", &out->session_id);
+	bencode_dictionary_get_str(input, "context", &out->context);
 
 	diridx = 0;
 	if ((list = bencode_dictionary_get_expect(input, "direction", BENCODE_LIST))) {
@@ -1028,6 +1045,15 @@ static void call_ng_process_flags(struct sdp_ng_flags *out, bencode_item_t *inpu
 			case CSH_LOOKUP("force-relay"):
 			case CSH_LOOKUP("force relay"):
 				out->ice_option = ICE_FORCE_RELAY;
+				break;
+			case CSH_LOOKUP("transparent-remove"):
+				out->ice_transparent_remove = 1;
+				break;
+			case CSH_LOOKUP("transparent-force"):
+				out->ice_transparent_force = 1;
+				break;
+			case CSH_LOOKUP("disable"):
+				out->ice_disable = 1;
 				break;
 			default:
 				ilog(LOG_WARN, "Unknown 'ICE' flag encountered: '"STR_FORMAT"'",
@@ -1450,7 +1476,7 @@ static const char *call_offer_answer_ng(struct ng_buffer *ngbuf, bencode_item_t 
 			goto out;
 		}
 
-		call = call_get_or_create(&flags.call_id, false, false);
+		call = call_get_or_create_with_session_id(&flags.call_id, &flags.session_id, &flags.context, false, false);
 	}
 
 	errstr = "Unknown call-id";
@@ -1465,6 +1491,7 @@ static const char *call_offer_answer_ng(struct ng_buffer *ngbuf, bencode_item_t 
 
 	updated_created_from(call, addr, sin);
 
+	call->dtls_ignore_endpoint_changes = flags.dtls_ignore_endpoint_changes;
 	if (flags.xmlrpc_callback.family)
 		call->xmlrpc_callback = flags.xmlrpc_callback;
 

@@ -385,9 +385,6 @@ typedef int format_cmp_f(const void *, const void *);
 // stubs
 struct codec_def_s {
 	int dtmf;
-	int supplemental;
-	format_cmp_f * const format_cmp;
-	const str silence_pattern;
 };
 struct packet_sequencer_s {
 };

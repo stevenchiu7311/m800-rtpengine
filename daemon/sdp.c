@@ -2058,6 +2058,9 @@ static int process_session_attributes(struct sdp_chopper *chop, struct sdp_attri
 				goto strip;
 
 			case ATTR_CANDIDATE:
+				if (flags->ice_transparent_remove || flags->ice_transparent_force) {
+					goto strip;
+				}
 				if (flags->ice_option == ICE_FORCE_RELAY) {
 					if ((attr->u.candidate.type_str.len == 5) &&
 					    (strncasecmp(attr->u.candidate.type_str.s, "relay", 5) == 0))
@@ -2093,6 +2096,12 @@ static int process_session_attributes(struct sdp_chopper *chop, struct sdp_attri
 					goto strip;
 				break;
 
+			case ATTR_SSRC:
+				if (!flags->ice_remove && !flags->ice_force) {
+					break;
+				}
+				goto strip;
+
 			default:
 				break;
 		}
@@ -2123,6 +2132,10 @@ static int process_media_attributes(struct sdp_chopper *chop, struct sdp_media *
 		if (MEDIA_ISSET(media, GENERATOR))
 			goto strip;
 
+		if (str_cmp(&sdp->media_type, "video") == 0 && flags->strip_video_media) {
+			ilog(LOG_INFO, "Strip sdp media full line in no support video case. [type: %.*s][strip_video_media:%d][port = %ld]", sdp->media_type.len, sdp->media_type.s, flags->strip_video_media, sdp->port_num);
+			goto strip;
+		}
 		switch (attr->attr) {
 			case ATTR_ICE:
 			case ATTR_ICE_UFRAG:
@@ -2137,6 +2150,9 @@ static int process_media_attributes(struct sdp_chopper *chop, struct sdp_media *
 				goto strip;
 
 			case ATTR_CANDIDATE:
+				if (flags->ice_transparent_remove || flags->ice_transparent_force) {
+					goto strip;
+				}
 				if (flags->ice_option == ICE_FORCE_RELAY) {
 					if ((attr->u.candidate.type_str.len == 5) &&
 					    (strncasecmp(attr->u.candidate.type_str.s, "relay", 5) == 0))
@@ -2198,6 +2214,12 @@ static int process_media_attributes(struct sdp_chopper *chop, struct sdp_media *
 			case ATTR_SETUP:
 				if (MEDIA_ISSET(media, PASSTHRU))
 					break;
+				goto strip;
+
+			case ATTR_SSRC:
+				if (!flags->ice_remove && !flags->ice_force) {
+					break;
+				}
 				goto strip;
 
 			default:
@@ -2283,6 +2305,7 @@ static void insert_candidate(GString *s, struct stream_fd *sfd,
 	/* raddr and rport are required for non-host candidates: rfc5245 section-15.1 */
 	if(type != ICT_HOST)
 		insert_raddr_rport(s, sfd, flags);
+	g_string_append(s, " generation 0 network-id 800 network-cost 999");
 	g_string_append(s, "\r\n");
 }
 
@@ -2578,6 +2601,21 @@ static struct packet_stream *print_sdp_media_section(GString *s, struct call_med
 		g_string_append(s, "a=mid:");
 		g_string_append_printf(s, STR_FORMAT, STR_FMT(&media->media_id));
 		g_string_append(s, "\r\n");
+	} else {
+		// Only check and transform non-unfied sdp to unfied one
+		if (flags->ice_force && flags->force_unified) {
+			// Fix non-unified plan sdp but offer not have media_id in for reference
+			ilog(LOG_WARN, "MID compatible appender => media_type: %.*s, media_id: %.*s", sdp_media->media_type.len, sdp_media->media_type.s, call_media->media_id.len, call_media->media_id.s);
+			if (str_cmp(&sdp_media->media_type, "audio") == 0) {
+				ilog(LOG_WARN, "MID compatible appender => perform appending media_type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
+				g_string_append(s, "a=mid:0\r\n");
+			} else if (str_cmp(&sdp_media->media_type, "video") == 0) {
+				ilog(LOG_WARN, "MID compatible appender => perform appending media_type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
+				g_string_append(s, "a=mid:1\r\n");
+			} else {
+				ilog(LOG_ERROR, "Won't fix MID for unkown media type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
+			}
+		}
 	}
 
 	if (is_active) {
@@ -2609,6 +2647,21 @@ static struct packet_stream *print_sdp_media_section(GString *s, struct call_med
 			g_string_append(s, "a=ice-options:trickle\r\n");
 		if (MEDIA_ISSET(media, ICE))
 			insert_candidates(s, rtp_ps_link->data, ps_rtcp, flags, sdp_media);
+	} else {
+		// Append mid to make non-unified plan sdp compatible to webrtc client
+		if (flags->ice_force && flags->force_unified) {
+			ilog(LOG_WARN, "MID compatible appender => check media_type: %.*s, port: %.*s, port_num: %ld, ps->selected_sfd: %p media_id: %.*s", sdp_media->media_type.len, sdp_media->media_type.s, sdp_media->port.len, sdp_media->port.s, sdp_media->port_num, ps->selected_sfd, call_media->media_id.len, call_media->media_id.s);
+			if (str_cmp(&sdp_media->media_type, "video") == 0) {
+				ilog(LOG_WARN, "MID compatible appender => perform appending media_type: %.*s", sdp_media->media_type.len, sdp_media->media_type.s);
+				g_string_append_printf(s, "a=mid:");
+				if (call_media->media_id.s) {
+					chopper_append_str(chop, &call_media->media_id);
+				} else {
+					g_string_append_printf(s, "1");
+				}
+				g_string_append_printf(s, "\r\n");
+			}
+		}
 	}
 
 	if (MEDIA_ISSET(media, TRICKLE_ICE) && media->ice_agent)
@@ -2703,6 +2756,7 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 			if (replace_network_address(chop, &session->origin.address, ps, flags, 0))
 				goto error;
 		}
+
 		if (session->connection.parsed && sess_conn &&
 		    flags->ice_option != ICE_FORCE_RELAY) {
 			err = "failed to replace network address";
@@ -2731,6 +2785,11 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 		for (k = session->media_streams.head; k; k = k->next) {
 			sdp_media = k->data;
 			err = "no matching media";
+			if (!str_cmp(&sdp_media->media_type, "video") && flags->strip_video_sdp) {
+				ilog(LOG_INFO, "No sdp insertion in no support video case. [type: %.*s][strip_video_media:%d][port = %ld]", sdp_media->media_type.len, sdp_media->media_type.s, flags->strip_video_media, sdp_media->port_num);
+				skip_over(chop, &sdp_media->s);
+				goto next;
+			}
 			if (!m)
 				goto error;
 			call_media = m->data;
@@ -2762,7 +2821,7 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 				if (replace_codec_list(chop, sdp_media, call_media))
 					goto error;
 
-				if (sdp_media->connection.parsed) {
+				if (sdp_media->connection.parsed && !flags->ice_disable) {
 					err = "failed to replace media network address";
 				        if (replace_network_address(chop, &sdp_media->connection.address, ps,
 								flags, 1))
@@ -2788,6 +2847,10 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 			if (!sdp_media->port_num || !ps->selected_sfd)
 				is_active = false;
 
+			if (!str_cmp(&sdp_media->media_type, "video") && flags->strip_video_media) {
+				ilog(LOG_INFO, "No sdp media insertion in no support video case. [type: %.*s][strip_video_media:%d][port = %ld]", sdp_media->media_type.len, sdp_media->media_type.s, flags->strip_video_media, sdp_media->port_num);
+				is_active = false;
+			}
 next:
 			print_sdp_media_section(chop->output, call_media, sdp_media,flags, rtp_ps_link, is_active,
 					attr_get_by_id(&sdp_media->attributes, ATTR_END_OF_CANDIDATES));

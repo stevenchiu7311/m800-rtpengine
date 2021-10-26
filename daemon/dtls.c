@@ -268,6 +268,7 @@ static int cert_init(void) {
 
 	new_cert = obj_alloc0("dtls_cert", sizeof(*new_cert), cert_free);
 
+
 	for (int i = 0; i < num_hash_funcs; i++) {
 		struct dtls_fingerprint *fp = malloc(sizeof(*fp));
 		fp->hash_func = &hash_funcs[i];
@@ -495,7 +496,7 @@ static int try_connect(struct dtls_connection *d) {
 	ret = 0;
 	switch (code) {
 		case SSL_ERROR_NONE:
-			ilogs(crypto, LOG_DEBUG, "DTLS handshake successful");
+			ilogs(crypto, LOG_INFO, "DTLS handshake successful");
 			d->connected = 1;
 			ret = 1;
 			break;
@@ -712,7 +713,7 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		return -1;
 
 	if (s) {
-		ilogs(srtp, LOG_DEBUG, "Processing incoming DTLS packet");
+		ilogs(srtp, LOG_INFO, "Processing incoming DTLS packet");
 		BIO_write(d->r_bio, s->s, s->len);
 		/* we understand this as preference of DTLS over SDES */
 		MEDIA_CLEAR(ps->media, SDES);
@@ -726,6 +727,7 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		return 0;
 	}
 	else if (ret == 1) {
+		ilog(LOG_INFO, "DTLS try_connect succ %d", ret);
 		/* connected! */
 		mutex_lock(&ps->out_lock); // nested lock!
 		if (dtls_setup_crypto(ps, d))
@@ -744,12 +746,15 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 			mutex_unlock(&ps->rtcp_sibling->out_lock);
 			mutex_unlock(&ps->rtcp_sibling->in_lock);
 		}
+		ilog(LOG_INFO, "DTLS setup_crypto finish");
 	}
 
 	while (1) {
 		ret = BIO_ctrl_pending(d->w_bio);
-		if (ret <= 0)
+		if (ret <= 0) {
+			ilog(LOG_INFO, "DTLS BIO_ctrl_pending break %d", ret);
 			break;
+		}
 
 		if (ret > sizeof(buf)) {
 			ilogs(srtp, LOG_ERROR, "BIO buffer overflow");
@@ -758,8 +763,10 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		}
 
 		ret = BIO_read(d->w_bio, buf, ret);
-		if (ret <= 0)
+		if (ret <= 0) {
+			ilog(LOG_INFO, "DTLS BIO_read break %d", ret);
 			break;
+		}
 
 		__DBG("dtls packet output: len %u %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 			ret,
@@ -775,7 +782,7 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		}
 
 		if (fsin) {
-			ilogs(srtp, LOG_DEBUG, "Sending DTLS packet");
+			ilogs(srtp, LOG_INFO, "Sending DTLS packet");
 			socket_sendto(&sfd->socket, buf, ret, fsin);
 		}
 	}

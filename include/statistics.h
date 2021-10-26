@@ -13,11 +13,23 @@ struct stream_stats {
 	atomic64			packets;
 	atomic64			bytes;
 	atomic64			errors;
+<<<<<<< HEAD
 #if RE_HAS_MEASUREDELAY
 	uint64_t			delay_min;
 	uint64_t			delay_avg;
 	uint64_t			delay_max;
 #endif
+=======
+	u_int64_t			delay_min;
+	u_int64_t			delay_avg;
+	u_int64_t			delay_max;
+	u_int8_t			in_tos_tclass; /* XXX shouldn't be here - not stats */
+	atomic64			foreign_sessions; // unresponsible via redis notification
+	atomic64			offers;
+	atomic64			answers;
+	atomic64			deletes;
+	struct timeval		last_report;
+>>>>>>> mr8.3.1
 };
 
 // "gauge" style stats

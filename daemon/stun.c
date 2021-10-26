@@ -522,14 +522,14 @@ static int __stun_request(struct stream_fd *sfd, const endpoint_t *sin,
 	ret = ice_request(sfd, sin, attrs);
 
 	if (ret == -2) {
-		ilog(LOG_DEBUG, "ICE role conflict detected");
+		ilog(LOG_INFO, "ICE role conflict detected");
 		stun_error(sfd, sin, req, 487, "Role conflict");
 		return 0;
 	}
 	if (ret < 0)
 		return -1;
 
-	ilog(LOG_DEBUG, "Successful STUN binding request" SLF, SLP);
+	ilog(LOG_INFO | LOG_FLAG_LIMIT, "Successful STUN binding request" SLF, SLP);
 	stun_binding_success(sfd, req, attrs, sin);
 
 	return ret;

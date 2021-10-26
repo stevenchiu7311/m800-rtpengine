@@ -1686,6 +1686,7 @@ static bool __stream_ssrc_out(struct packet_stream *out_srtp, uint32_t ssrc_bs,
 static int media_demux_protocols(struct packet_handler_ctx *phc) {
 	if (MEDIA_ISSET(phc->mp.media, DTLS) && is_dtls(&phc->s)) {
 		mutex_lock(&phc->mp.stream->in_lock);
+		ilog(LOG_INFO, "[media_demux_protocols][dtls] src_ep: %s%s%s dst_ep: %s%s%s", FMT_M(endpoint_print_buf(&phc->mp.fsin)), FMT_M(endpoint_print_buf(&phc->mp.sfd->socket.local)));
 		int ret = dtls(phc->mp.sfd, &phc->s, &phc->mp.fsin);
 		mutex_unlock(&phc->mp.stream->in_lock);
 		if (!ret)
@@ -1693,6 +1694,7 @@ static int media_demux_protocols(struct packet_handler_ctx *phc) {
 	}
 
 	if (phc->mp.media->ice_agent && is_stun(&phc->s)) {
+		ilog(LOG_INFO, "[media_demux_protocols][stun] src_ep: %s%s%s dst_ep: %s%s%s", FMT_M(endpoint_print_buf(&phc->mp.fsin)), FMT_M(endpoint_print_buf(&phc->mp.sfd->socket.local)));
 		int stun_ret = stun(&phc->s, phc->mp.sfd, &phc->mp.fsin);
 		if (!stun_ret)
 			return 0;
@@ -2133,12 +2135,17 @@ static int do_rtcp_parse(struct packet_handler_ctx *phc) {
 	return 0;
 }
 static int do_rtcp_output(struct packet_handler_ctx *phc) {
-	if (phc->rtcp_discard)
-		return 0;
+	if (!MEDIA_ISSET(phc->in_srtp->media, PASSTHRU)) {
+		if (phc->rtcp_discard)
+			return 0;
 
-	if (phc->rtcp_filter)
-		if (phc->rtcp_filter(&phc->mp, &phc->rtcp_list))
-			return -1;
+		if (phc->rtcp_filter)
+			if (phc->rtcp_filter(&phc->mp, &phc->rtcp_list))
+				return -1;
+	} else {
+		srtp_report(TYPE_PACKET_REPORT_RTCP, &phc->mp);
+		ilog(LOG_INFO, "[stream_packet][do_rtcp] homer_stats, src_ep: %s%s%s dst_ep: %s%s%s", FMT_M(endpoint_print_buf(&phc->mp.fsin)), FMT_M(endpoint_print_buf(&phc->mp.sfd->socket.local)));
+	}
 
 	// queue for output
 	codec_add_raw_packet(&phc->mp, 0);
@@ -2465,6 +2472,15 @@ drop:
 	ret = 0;
 	handler_ret = 0;
 
+	// u_int64_t received_packets = atomic64_get_na(&phc->mp.stream->stats.packets);
+	// ilog(LOG_INFO, "[stream_packet] Receive RTP src_ep:%s%s%s received_packets: %lu", FMT_M(endpoint_print_buf(&phc->mp.fsin)), received_packets);
+	long long diff = timeval_diff(&rtpe_now, &phc->mp.stream->stats.last_report);
+	if (diff > 3000 * 1000) {
+		phc->mp.stream->stats.last_report.tv_sec = rtpe_now.tv_sec;
+		phc->mp.stream->stats.last_report.tv_usec = rtpe_now.tv_usec;
+		srtp_report(TYPE_PACKET_REPORT_RTCP, &phc->mp);
+		ilog(LOG_INFO, "[stream_packet][force_report] homer_stats, callid: "STR_FORMAT" src_ep: %s%s%s dst_ep: %s%s%s", STR_FMT(&phc->mp.stream->call->callid), FMT_M(endpoint_print_buf(&phc->mp.fsin)), FMT_M(endpoint_print_buf(&phc->mp.sfd->socket.local)));
+	}
 out:
 	if (phc->unconfirm) {
 		stream_unconfirm(phc->mp.stream);

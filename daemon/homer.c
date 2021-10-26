@@ -44,7 +44,7 @@ static struct homer_sender *main_homer_sender;
 
 
 static int send_hepv3 (GString *s, const str *id, int, const endpoint_t *src, const endpoint_t *dst,
-		const struct timeval *);
+		const struct timeval *, int proto_type);
 
 // state handlers
 static int __established(struct homer_sender *hs);
@@ -65,13 +65,14 @@ static void __reset(struct homer_sender *hs) {
 	hs->partial = NULL;
 }
 
-static int __attempt_send(struct homer_sender *hs, GString *gs) {
+static int __attempt_send(struct homer_sender *hs, GString **gs) {
 	int ret;
 
-	ret = write(hs->socket.fd, gs->str, gs->len);
-	if (ret == gs->len) {
+	ret = write(hs->socket.fd, (*gs)->str, (*gs)->len);
+	if (ret == (*gs)->len) {
 		// full write
-		g_string_free(gs, TRUE);
+		g_string_free(*gs, TRUE);
+		*gs = NULL;
 		return 0;
 	}
 	if (ret < 0) {
@@ -87,7 +88,7 @@ static int __attempt_send(struct homer_sender *hs, GString *gs) {
 	}
 	// partial write
 	ilog(LOG_DEBUG, "Home write blocked (partial write)");
-	g_string_erase(gs, 0, ret);
+	g_string_erase(*gs, 0, ret);
 	return 3;
 }
 
@@ -110,19 +111,24 @@ static int __established(struct homer_sender *hs) {
 
 	if (hs->partial) {
 		ilog(LOG_DEBUG, "dequeue partial packet to Homer");
-		ret = __attempt_send(hs, hs->partial);
+		ret = __attempt_send(hs, &hs->partial);
 		if (ret == 3 || ret == 2) // partial write or not sent at all
 			return 0;
 		if (ret == 1) // write error, takes care of deleting hs->partial
 			return -1;
 		// ret == 0 -> sent OK, drop through to unqueue
-		hs->partial = NULL;
+		if (hs->partial != NULL) {
+			g_string_free(hs->partial, TRUE);
+			hs->partial = NULL;
+		} else {
+			ilog(LOG_WARN, "Partial string has already been free");
+		}
 	}
 
 	// unqueue as much as we can
 	while ((gs = g_queue_pop_head(&hs->send_queue))) {
 		ilog(LOG_DEBUG, "dequeue send queue to Homer");
-		ret = __attempt_send(hs, gs);
+		ret = __attempt_send(hs, &gs);
 		if (ret == 0) // everything sent OK
 			continue;
 		if (ret == 3) { // partial write
@@ -204,9 +210,15 @@ void homer_sender_init(const endpoint_t *ep, int protocol, int capture_id) {
 	return;
 }
 
+int homer_send(GString *s, const str *id, const endpoint_t *src, const endpoint_t *dst,
+		const struct timeval *tv)
+{
+    return homer_send_generic(s, id, src, dst, tv, PROTO_RTCP_JSON);
+}
+
 // takes over the GString
-int homer_send(GString *s, const str *id, const endpoint_t *src,
-		const endpoint_t *dst, const struct timeval *tv)
+int homer_send_generic(GString *s, const str *id, const endpoint_t *src,
+		const endpoint_t *dst, const struct timeval *tv, int proto_type)
 {
 	if (!main_homer_sender)
 		goto out;
@@ -217,7 +229,7 @@ int homer_send(GString *s, const str *id, const endpoint_t *src,
 
 	ilog(LOG_DEBUG, "JSON to send to Homer: '"STR_FORMAT"'", G_STR_FMT(s));
 
-	if (send_hepv3(s, id, main_homer_sender->capture_id, src, dst, tv))
+	if (send_hepv3(s, id, main_homer_sender->capture_id, src, dst, tv, proto_type))
 		goto out;
 
 	mutex_lock(&main_homer_sender->lock);
@@ -321,11 +333,9 @@ struct hep_generic {
 
 typedef struct hep_generic hep_generic_t;
 
-#define PROTO_RTCP_JSON   0x05
-
 // modifies the GString in place
 static int send_hepv3 (GString *s, const str *id, int capt_id, const endpoint_t *src, const endpoint_t *dst,
-		const struct timeval *tv)
+		const struct timeval *tv, int proto_type)
 {
 
     struct hep_generic *hg=NULL;
@@ -420,7 +430,8 @@ static int send_hepv3 (GString *s, const str *id, int capt_id, const endpoint_t 
     /* Protocol TYPE */
     hg->proto_t.chunk.vendor_id = htons(0x0000);
     hg->proto_t.chunk.type_id   = htons(0x000b);
-    hg->proto_t.data = PROTO_RTCP_JSON;
+    // Change origin PROTO_RTCP_JSON to generic parameterr
+    hg->proto_t.data = proto_type;
     hg->proto_t.chunk.length = htons(sizeof(hg->proto_t));
 
     /* Capture ID */

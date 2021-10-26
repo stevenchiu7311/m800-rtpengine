@@ -20,6 +20,12 @@ struct rtcp_parse_ctx {
 	const struct timeval *received;
 };
 
+enum rtp_report_t {
+	TYPE_PACKET_REPORT_RTCP = 0,
+	TYPE_PACKET_REPORT_CALL_TIMER,
+	TYPE_RTCP_REPORT,
+	TYPE_UNDEFINED,
+};
 
 extern struct rtcp_handler *rtcp_transcode_handler;
 extern struct rtcp_handler *rtcp_sink_handler;
@@ -31,6 +37,7 @@ int rtcp_savp2avp(str *, struct crypto_context *, struct ssrc_ctx *);
 int rtcp_payload(struct rtcp_packet **out, str *p, const str *s);
 
 int rtcp_parse(GQueue *q, struct media_packet *);
+void srtp_report(enum rtp_report_t type, struct media_packet *);
 void rtcp_list_free(GQueue *q);
 
 rtcp_filter_func rtcp_avpf2avp_filter;
@@ -40,5 +47,6 @@ void rtcp_init(void);
 
 void rtcp_receiver_reports(GQueue *out, struct ssrc_hash *hash, struct call_monologue *ml);
 void rtcp_send_report(struct call_media *media, struct ssrc_ctx *ssrc_out);
+GString* homer_stats(enum rtp_report_t type, struct packet_stream *ps);
 
 #endif

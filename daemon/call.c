@@ -49,6 +49,8 @@
 #include "t38.h"
 #include "mqtt.h"
 #include "janus.h"
+#include "rtcp.h"
+#include "homer.h"
 
 
 struct iterator_helper {
@@ -551,7 +553,9 @@ void call_timer(void *ptr) {
 	struct stream_fd *sfd;
 	struct rtp_stats *rs;
 	unsigned int pt;
-	endpoint_t ep;
+	endpoint_t ep, ep_src_addr, ep_dst_addr;
+	// TODO:
+	u_int64_t offers, answers, deletes;
 	struct timeval tv_start;
 	long long run_diff_us;
 
@@ -587,6 +591,8 @@ void call_timer(void *ptr) {
 		ke = i->data;
 
 		kernel2endpoint(&ep, &ke->target.local);
+		kernel2endpoint(&ep_src_addr, &ke->target.src_addr);
+		kernel2endpoint(&ep_dst_addr, &ke->target.dst_addr);
 		sfd = g_hash_table_lookup(hlp.addr_sfd, &ep);
 		if (!sfd)
 			goto next;
@@ -605,6 +611,10 @@ void call_timer(void *ptr) {
 		DS(bytes);
 		DS(errors);
 
+		GString* stat_json = homer_stats(TYPE_PACKET_REPORT_CALL_TIMER, ps);
+		if (stat_json) {
+			homer_send_generic(stat_json, &ps->call->callid, &ep_src_addr, &ep_dst_addr, &rtpe_now, PROTO_LOG);
+		}
 
 		if (ke->stats.packets != atomic64_get(&ps->kernel_stats.packets)) {
 			atomic64_set(&ps->last_packet, rtpe_now.tv_sec);
@@ -623,6 +633,10 @@ void call_timer(void *ptr) {
 		atomic64_set(&ps->kernel_stats.bytes, ke->stats.bytes);
 		atomic64_set(&ps->kernel_stats.packets, ke->stats.packets);
 		atomic64_set(&ps->kernel_stats.errors, ke->stats.errors);
+
+		u_int64_t received_packets = atomic64_get_na(&ps->stats.packets);
+		u_int64_t received_kernal_packets = atomic64_get_na(&ps->kernel_stats.packets);
+		ilog(LOG_INFO, "[call_timer] callid: "STR_FORMAT" homer_stats, src_ep: %s%s:%d%s dst_ep: %s%s:%d%s %lu %lu", STR_FMT(&ps->call->callid), FMT_M(sockaddr_print_buf(&ep_src_addr.address), ep_src_addr.port), FMT_M(sockaddr_print_buf(&ep_dst_addr.address), ep_dst_addr.port), received_packets, received_kernal_packets);
 
 		for (j = 0; j < ke->target.num_payload_types; j++) {
 			pt = ke->target.payload_types[j].pt_num;
@@ -1037,10 +1051,23 @@ static void __fill_stream(struct packet_stream *ps, const struct endpoint *epp, 
 
 	ps->endpoint = ep;
 
-	if (PS_ISSET(ps, FILLED) && !MEDIA_ISSET(media, DTLS)) {
-		/* we reset crypto params whenever the endpoint changes */
-		call_stream_crypto_reset(ps);
-		dtls_shutdown(ps);
+	struct call *call = media->call;
+	int dtls_ignore_endpoint_changes = 0;
+	if (call) {
+		dtls_ignore_endpoint_changes = call->dtls_ignore_endpoint_changes;
+	}
+
+	ilog(LOG_DEBUG, "[__fill_stream] Check dtls_ignore_endpoint_changes: %d", dtls_ignore_endpoint_changes);
+	if (dtls_ignore_endpoint_changes) {
+		ilog(LOG_DEBUG, "[__fill_stream] Ignore dtls/crypto handshake for follow-up endpoint changes...Packet stream instance %p with port %d if filled %x", &ps->endpoint, (ps->endpoint).port, PS_ISSET(ps, FILLED));
+	} else {
+		ilog(LOG_DEBUG, "[__fill_stream] Try reset dtls/crypto for packet stream instance %p with port %d if filled %x", &ps->endpoint, (ps->endpoint).port, PS_ISSET(ps, FILLED));
+		if (PS_ISSET(ps, FILLED)) {
+			/* we reset crypto params whenever the endpoint changes */
+			// XXX fix WRT SSRC handling
+			crypto_reset(&ps->crypto);
+			dtls_shutdown(ps);
+		}
 	}
 
 	if (ps->selected_sfd)
@@ -3409,6 +3436,12 @@ static struct call *call_create(const str *callid) {
 
 /* returns call with master_lock held in W */
 struct call *call_get_or_create(const str *callid, bool foreign, bool exclusive) {
+	str context;
+	return call_get_or_create_with_session_id(callid, callid, &context, foreign, exclusive);
+}
+
+/* returns call with master_lock held in W */
+struct call *call_get_or_create_with_session_id(const str *callid, const str *session_id, const str *context, bool foreign, bool exclusive) {
 	struct call *c;
 
 restart:
@@ -3418,6 +3451,8 @@ restart:
 		rwlock_unlock_r(&rtpe_callhash_lock);
 		/* completely new call-id, create call */
 		c = call_create(callid);
+		call_str_cpy(c, &c->session_id, session_id);
+		call_str_cpy(c, &c->context, context);
 		rwlock_lock_w(&rtpe_callhash_lock);
 		if (g_hash_table_lookup(rtpe_callhash, callid)) {
 			/* preempted */

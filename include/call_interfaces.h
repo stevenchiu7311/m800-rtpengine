@@ -28,6 +28,8 @@ struct sdp_ng_flags {
 	str received_from_address;
 	str media_address;
 	str address_family_str;
+	str session_id;
+	str context;
 	const struct transport_protocol *transport_protocol;
 	sockaddr_t parsed_received_from;
 	sockaddr_t parsed_media_address;
@@ -146,6 +148,11 @@ struct sdp_ng_flags {
 	             disable_jb:1,
 		     nat_wait:1,
 		     pierce_nat:1;
+			 force_reset:1,
+			 dtls_ignore_endpoint_changes:1,
+			 force_unified:1,
+			 strip_video_sdp:1,
+			 strip_video_media:1;
 };
 
 

@@ -272,7 +272,7 @@ static void packet_decode(ssrc_t *ssrc, packet_t *packet) {
 		if (!payload_str) {
 			const struct rtp_payload_type *rpt = rtp_get_rfc_payload_type(payload_type);
 			if (!rpt) {
-				ilog(LOG_WARN, "Unknown RTP payload type %u", payload_type);
+				// ilog(LOG_WARN, "Unknown RTP payload type %u", payload_type);
 				return;
 			}
 			payload_str = rpt->encoding_with_params.s;
@@ -289,8 +289,8 @@ static void packet_decode(ssrc_t *ssrc, packet_t *packet) {
 		ssrc->decoders[payload_type] = decoder_new(payload_str, format, ptime, outp);
 		pthread_mutex_unlock(&mf->mix_lock);
 		if (!ssrc->decoders[payload_type]) {
-			ilog(LOG_WARN, "Cannot decode RTP payload type %u (%s)",
-					payload_type, payload_str);
+			// ilog(LOG_WARN, "Cannot decode RTP payload type %u (%s)",
+			// 		payload_type, payload_str);
 			return;
 		}
 	}
@@ -357,6 +357,10 @@ void packet_process(stream_t *stream, unsigned char *buf, unsigned len) {
 	unsigned long ssrc_num = ntohl(packet->rtp->ssrc);
 	log_info_ssrc = ssrc_num;
 	dbg("packet parsed successfully, seq %u", packet->p.seq);
+	if (stream->log_seq == 0 || packet->p.seq % 3000 == 0) {
+		ilog(LOG_INFO, "packet parsed successfully, seq %d", packet->p.seq);
+	}
+	stream->log_seq++;
 
 	// insert into ssrc queue
 	ssrc_t *ssrc = ssrc_get(stream, ssrc_num);

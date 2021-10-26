@@ -508,6 +508,8 @@ struct call {
 	struct janus_session	*janus_session;
 
 	str			callid;
+	str			session_id;
+	str			context;
 	struct timeval		created;
 	time_t			last_signal;
 	time_t			deleted;
@@ -542,6 +544,7 @@ struct call {
 	unsigned int		foreign_media:1; // for calls taken over, tracks whether we have media
 	unsigned int		disable_jb:1;
 	unsigned int		debug:1;
+	unsigned int		dtls_ignore_endpoint_changes:1;
 };
 
 
@@ -597,6 +600,7 @@ void __add_sink_handler(GQueue *, struct packet_stream *);
 
 
 struct call *call_get_or_create(const str *callid, bool foreign, bool exclusive);
+struct call *call_get_or_create_with_session_id(const str *callid, const str *session_id, const str *context, bool foreign, bool exclusive);
 struct call *call_get_opmode(const str *callid, enum call_opmode opmode);
 void call_make_own_foreign(struct call *c, bool foreign);
 int call_get_mono_dialogue(struct call_monologue *dialogue[2], struct call *call, const str *fromtag,

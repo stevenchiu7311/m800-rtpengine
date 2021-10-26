@@ -50,7 +50,7 @@ decode_t *decoder_new(const char *payload_str, const char *format, int ptime, ou
 
 	const codec_def_t *def = codec_find(&name, MT_AUDIO);
 	if (!def) {
-		ilog(LOG_WARN, "No decoder for payload %s", payload_str);
+		// ilog(LOG_WARN, "No decoder for payload %s", payload_str);
 		return NULL;
 	}
 	if (def->supplemental || !def->support_decoding || def->media_type != MT_AUDIO) {
