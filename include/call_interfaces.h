@@ -61,6 +61,9 @@ struct sdp_ng_flags {
 		ICE_FORCE,
 		ICE_FORCE_RELAY,
 		ICE_OPTIONAL,
+		ICE_DISABLE,
+		ICE_TRANSPARENT_REMOVE,
+		ICE_TRANSPARENT_FORCE,
 	} ice_option:3;
 	enum {
 		ICE_LITE_DEFAULT = 0,
@@ -147,12 +150,12 @@ struct sdp_ng_flags {
 	             passthrough_off:1,
 	             disable_jb:1,
 		     nat_wait:1,
-		     pierce_nat:1;
-			 force_reset:1,
-			 dtls_ignore_endpoint_changes:1,
-			 force_unified:1,
-			 strip_video_sdp:1,
-			 strip_video_media:1;
+		     pierce_nat:1,
+		     force_reset:1,
+		     dtls_ignore_endpoint_changes:1,
+		     force_unified:1,
+		     strip_video_sdp:1,
+		     strip_video_media:1;
 };
 
 

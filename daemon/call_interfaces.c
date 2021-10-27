@@ -1047,13 +1047,13 @@ static void call_ng_process_flags(struct sdp_ng_flags *out, bencode_item_t *inpu
 				out->ice_option = ICE_FORCE_RELAY;
 				break;
 			case CSH_LOOKUP("transparent-remove"):
-				out->ice_transparent_remove = 1;
+				out->ice_option = ICE_TRANSPARENT_REMOVE;
 				break;
 			case CSH_LOOKUP("transparent-force"):
-				out->ice_transparent_force = 1;
+				out->ice_option = ICE_TRANSPARENT_FORCE;
 				break;
 			case CSH_LOOKUP("disable"):
-				out->ice_disable = 1;
+				out->ice_option = ICE_DISABLE;
 				break;
 			default:
 				ilog(LOG_WARN, "Unknown 'ICE' flag encountered: '"STR_FORMAT"'",

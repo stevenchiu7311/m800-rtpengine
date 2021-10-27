@@ -268,7 +268,6 @@ static int cert_init(void) {
 
 	new_cert = obj_alloc0("dtls_cert", sizeof(*new_cert), cert_free);
 
-
 	for (int i = 0; i < num_hash_funcs; i++) {
 		struct dtls_fingerprint *fp = malloc(sizeof(*fp));
 		fp->hash_func = &hash_funcs[i];
@@ -496,7 +495,7 @@ static int try_connect(struct dtls_connection *d) {
 	ret = 0;
 	switch (code) {
 		case SSL_ERROR_NONE:
-			ilogs(crypto, LOG_INFO, "DTLS handshake successful");
+			ilogs(crypto, LOG_DEBUG, "DTLS handshake successful");
 			d->connected = 1;
 			ret = 1;
 			break;
@@ -713,7 +712,7 @@ int dtls(struct stream_fd *sfd, const str *s, const endpoint_t *fsin) {
 		return -1;
 
 	if (s) {
-		ilogs(srtp, LOG_INFO, "Processing incoming DTLS packet");
+		ilogs(srtp, LOG_DEBUG, "Processing incoming DTLS packet");
 		BIO_write(d->r_bio, s->s, s->len);
 		/* we understand this as preference of DTLS over SDES */
 		MEDIA_CLEAR(ps->media, SDES);

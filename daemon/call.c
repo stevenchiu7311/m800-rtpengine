@@ -554,8 +554,6 @@ void call_timer(void *ptr) {
 	struct rtp_stats *rs;
 	unsigned int pt;
 	endpoint_t ep, ep_src_addr, ep_dst_addr;
-	// TODO:
-	u_int64_t offers, answers, deletes;
 	struct timeval tv_start;
 	long long run_diff_us;
 
@@ -591,8 +589,9 @@ void call_timer(void *ptr) {
 		ke = i->data;
 
 		kernel2endpoint(&ep, &ke->target.local);
-		kernel2endpoint(&ep_src_addr, &ke->target.src_addr);
-		kernel2endpoint(&ep_dst_addr, &ke->target.dst_addr);
+		// TODO: Check output array size and index
+		kernel2endpoint(&ep_src_addr, &ke->outputs[0].src_addr);
+		kernel2endpoint(&ep_dst_addr, &ke->outputs[0].dst_addr);
 		sfd = g_hash_table_lookup(hlp.addr_sfd, &ep);
 		if (!sfd)
 			goto next;

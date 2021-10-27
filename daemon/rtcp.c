@@ -661,7 +661,6 @@ void rtcp_list_free(GQueue *q) {
 
 void rtcp_report(struct rtcp_process_ctx *ctx) {
 	struct media_packet *mp = ctx->mp;
-
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 
@@ -683,9 +682,17 @@ void rtcp_report(struct rtcp_process_ctx *ctx) {
 		TYPE_RTCP_REPORT,
 		time_in_second);
 
-	struct ssrc_entry_call *other_e = get_ssrc(ctx->scratch.rr.from, ctx->mp->call->ssrc_hash);
+	struct ssrc_entry_call *other_e = get_ssrc(ctx->scratch.rr.from, ctx->mp->media->monologue->ssrc_hash);
 	if (G_LIKELY(other_e) && G_LIKELY(other_e->stats_blocks.length > 0)) {
 		struct ssrc_stats_block *last_ssb = g_queue_peek_tail(&other_e->stats_blocks);
+		uint64_t lowest_mos = 0;
+		uint64_t highest_mos = 0;
+		if (G_LIKELY(other_e->lowest_mos)) {
+			lowest_mos = other_e->lowest_mos->mos;
+		}
+		if (G_LIKELY(other_e->highest_mos)) {
+			highest_mos = other_e->highest_mos->mos;
+		}
 		g_string_append_printf(ctx->custom_log,
 			"\"summary\": {"
 			"\"ssrc\":%u,"
@@ -699,8 +706,8 @@ void rtcp_report(struct rtcp_process_ctx *ctx) {
 			last_ssb->jitter,
 			last_ssb->rtt,
 			last_ssb->mos,
-			other_e->lowest_mos->mos,
-			other_e->highest_mos->mos);
+			lowest_mos,
+			highest_mos);
 	}
 
 	str_sanitize(ctx->custom_log);
