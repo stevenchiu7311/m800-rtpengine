@@ -123,6 +123,16 @@ daemon-tests-main:
 	test "$$(ls fake-$@-sockets)" = ""
 	rmdir fake-$@-sockets
 
+daemon-tests-main-custom:
+	rm -rf fake-$@-sockets
+	mkdir fake-$@-sockets
+	LD_PRELOAD=../t/tests-preload.so RTPE_BIN=../daemon/rtpengine TEST_SOCKET_PATH=./fake-$@-sockets \
+		   perl -I../perl auto-daemon-tests-unified-plan.pl
+	LD_PRELOAD=../t/tests-preload.so RTPE_BIN=../daemon/rtpengine TEST_SOCKET_PATH=./fake-$@-sockets \
+		   perl -I../perl auto-daemon-tests-video-strip.pl
+	test "$$(ls fake-$@-sockets)" = ""
+	rmdir fake-$@-sockets
+
 daemon-tests-jb:
 	rm -rf fake-$@-sockets
 	mkdir fake-$@-sockets
