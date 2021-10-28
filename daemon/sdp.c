@@ -2647,21 +2647,6 @@ static struct packet_stream *print_sdp_media_section(GString *s, struct call_med
 			g_string_append(s, "a=ice-options:trickle\r\n");
 		if (MEDIA_ISSET(media, ICE))
 			insert_candidates(s, rtp_ps_link->data, ps_rtcp, flags, sdp_media);
-	} else {
-		// Append mid to make non-unified plan sdp compatible to webrtc client
-		if (flags->ice_option == ICE_FORCE && flags->force_unified) {
-			ilog(LOG_WARN, "MID compatible appender => check media_type: %d, port: %.*s, port_num: %ld, media_id: %.*s", sdp_media->media_type_id, sdp_media->port.len, sdp_media->port.s, sdp_media->port_num, media->media_id.len, media->media_id.s);
-			if (sdp_media->media_type_id == MT_VIDEO) {
-				ilog(LOG_WARN, "MID compatible appender => perform appending media_type: %d", sdp_media->media_type_id);
-				g_string_append_printf(s, "a=mid:");
-				if (media->media_id.s) {
-					g_string_append_printf(s, STR_FORMAT, STR_FMT(&media->media_id));
-				} else {
-					g_string_append_printf(s, "1");
-				}
-				g_string_append_printf(s, "\r\n");
-			}
-		}
 	}
 
 	if (MEDIA_ISSET(media, TRICKLE_ICE) && media->ice_agent)
@@ -2788,7 +2773,7 @@ int sdp_replace(struct sdp_chopper *chop, GQueue *sessions, struct call_monologu
 			if (sdp_media->media_type_id == MT_VIDEO && flags->strip_video_sdp) {
 				ilog(LOG_INFO, "No sdp insertion in no support video case. [type: %d][strip_video_media:%d][port = %ld]", sdp_media->media_type_id, flags->strip_video_media, sdp_media->port_num);
 				skip_over(chop, &sdp_media->s);
-				goto next;
+				goto skip_and_next;
 			}
 			if (!m)
 				goto error;
@@ -2855,6 +2840,7 @@ next:
 			print_sdp_media_section(chop->output, call_media, sdp_media,flags, rtp_ps_link, is_active,
 					attr_get_by_id(&sdp_media->attributes, ATTR_END_OF_CANDIDATES));
 
+skip_and_next:
 			media_index++;
 			m = m->next;
 		}
