@@ -3435,7 +3435,7 @@ static struct call *call_create(const str *callid) {
 
 /* returns call with master_lock held in W */
 struct call *call_get_or_create(const str *callid, bool foreign, bool exclusive) {
-	str context;
+	str context = STR_CONST_INIT("");
 	return call_get_or_create_with_session_id(callid, callid, &context, foreign, exclusive);
 }
 
