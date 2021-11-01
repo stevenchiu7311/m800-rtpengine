@@ -113,7 +113,7 @@ daemon-tests:	tests-preload.so
 	$(MAKE) -C ../daemon
 	$(MAKE) all-daemon-tests
 
-all-daemon-tests: daemon-tests-main daemon-tests-jb daemon-tests-pubsub daemon-tests-websocket daemon-tests-main-custom
+all-daemon-tests: daemon-tests-main daemon-tests-jb daemon-tests-pubsub daemon-tests-main-custom
 
 daemon-tests-main:
 	rm -rf fake-$@-sockets
