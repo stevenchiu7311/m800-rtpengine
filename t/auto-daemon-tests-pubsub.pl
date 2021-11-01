@@ -938,10 +938,10 @@ a=sendonly
 a=rtcp:PORT
 a=ice-ufrag:ICEUFRAG
 a=ice-pwd:ICEPWD
-a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host
-a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host
+a=candidate:ICEBASE 1 UDP 2130706431 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 1 UDP 2130706175 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706430 203.0.113.1 PORT typ host generation 0 network-id 800 network-cost 999
+a=candidate:ICEBASE 2 UDP 2130706174 2001:db8:4321::1 PORT typ host generation 0 network-id 800 network-cost 999
 SDP
 
 is $ftr, ft(), 'from-tag matches';
@@ -957,8 +957,8 @@ c=IN IP4 198.51.100.14
 a=recvonly
 a=ice-ufrag:q2758e93
 a=ice-pwd:bd5e845657ecb8d6dd8e1bc6
-a=candidate:keutydghfbhdcfsb 1 UDP 2130706431 198.51.100.14 6028 typ host
-a=candidate:keutydghfbhdcfsb 2 UDP 2130706430 198.51.100.14 6029 typ host
+a=candidate:keutydghfbhdcfsb 1 UDP 2130706431 198.51.100.14 6028 typ host generation 0 network-id 800 network-cost 999
+a=candidate:keutydghfbhdcfsb 2 UDP 2130706430 198.51.100.14 6029 typ host generation 0 network-id 800 network-cost 999
 SDP
 
 @ret1 = rcv($sock_c, -1, qr/^\x00\x01\x00.\x21\x12\xa4\x42(............)\x80\x22\x00.rtpengine.*?\x00\x06\x00\x11q2758e93:(........)\x00\x00\x00\x80\x29\x00\x08........\x00\x24\x00\x04\x6e\xff\xff\xff\x00\x08\x00\x14....................\x80\x28\x00\x04....$/s);
