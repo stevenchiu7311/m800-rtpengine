@@ -320,7 +320,7 @@ void ice_update(struct ice_agent *ag, struct stream_params *sp) {
 	struct packet_stream *components[MAX_COMPONENTS], *ps;
 	GQueue *candidates;
 	struct stream_fd *sfd;
-				ilog(LOG_INFO, "ice_update");
+
 	if (!ag)
 		return;
 
